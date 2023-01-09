@@ -26,6 +26,7 @@ library(reshape2)
 library(plyr)
 library(speedyseq)
 library(dplyr)
+library(janitor)  #row_to_names
 
 setwd ("~/Documentos/Doctorat/REMEI/")
 
@@ -93,6 +94,7 @@ dim(exp.data) ##292 samples
 exp.data %>% 
   colnames()
 
+library(plyr)
 exp.data <- exp.data %>% 
   rename(c("Type" = "type", "Treatment" = "treatment", "Light Regime" = "light_regime",
                       "Replicate" = "replicate", "Time" = "time", "Hours" = "hours", "Season" = "season", 
@@ -460,22 +462,16 @@ saveRDS(rem.phy.fcs, 'data/intermediate_files/remei_phyloseq_gtbd_fc.rds')
 ##add t0 experiments from BBMO
 #keep samples start with BL
 
-##Create ASV clustered TAB with experiments in situ samples from BBMO----
-##miro primer si tenim el mateixn nº de ASV amb el clustering que sense
-seqtab_clust <- readRDS("data/dada2/remei_1_2_miau_1_seqtab_clust100.rds")
-seqtab_clust %>%
-  dim()
+#Create ASV clustered TAB with experiments in situ samples from BBMO---------
+##miro primer si tenim el mateixn nº de ASV amb el clustering que sense (tene el mateix per tant utilitzo la unclust)
+# seqtab_clust <- readRDS("data/dada2/remei_1_2_miau_1_seqtab_clust100.rds")
+# seqtab_clust %>%
+#   dim()
 
 seqtab_unclust <- readRDS("data/dada2/02_nochimera_mergeruns/remei_1_2_miau_1_pool/remei_1_2_miau_1_pool_seqtab_final.rds")
 seqtab_unclust %>%
-  dim()
+  dim() ##711 samples with 33099 ASV
 
-#utilitzo la taula unclustered perquè al fer-ho al 100% he obtingut les mateixes ASV...
-seqtab_unclust <- readRDS("data/dada2/02_nochimera_mergeruns/remei_1_2_miau_1_pool/remei_1_2_miau_1_pool_seqtab_final.rds")
-seqtab_unclust %>%
-  dim() ##711 mostres 33099 ASV
-
-##està malament l'arxiu per això no funcionava.
 tax_silva_remiau <- readRDS("data/dada2/03_taxonomy/remei_1_2_miau_1_silva_pool/remei_1_2_miau_1_silva_pool_tax_assignation.rds") %>% 
   as_tibble(rownames = 'sequence')
 
@@ -490,26 +486,27 @@ tax_silva_remiau <- tax_silva_remiau %>%
 tax_silva_remiau %>%
 dim() ##14325 ASV de 33099
 
-
-
-# Environmental data ------------------------------------------------------
+# Environmental data MIAU sequencing but for in situ REMEI experiments ------------------------------------------------------
 exp.data_miau <- read.table('/Users/onadeulofeucapo/Documentos/Doctorat/MIAU_seqs/sample_labels.txt', sep = '\t')
 
-exp.data_miau_filt %>%
-  head()
-
+##keep only the samples from BBMO in situ
 exp.data_miau_filt <- 
   exp.data_miau %>%
   filter(str_detect(V1, 'BL_')) %>%
-  mutate(season = case_when(.$V1 == 'BL_170220Exp. REMEI-W' ~ 'Winter',
+  mutate(
+    season = case_when(.$V1 == 'BL_170220Exp. REMEI-W' ~ 'Winter',
                             .$V1 == 'BL_170425Exp REMEI-SP' ~ 'Spring',
                             .$V1 == 'BL_170704Exp REMEI-SU' ~ 'Summer',
                             .$V1 == 'BL_171106EXP REMEI-Fall' ~ 'Fall'),
          time ='t-2',
          hours = as.double('-2'),
          light_regime = 'L',
-         selected_file_name = V1)
+         selected_file_name = V3)
 
+exp.data_miau_filt %>%
+  head()
+
+##REMEI
 exp.data <- readxl::read_xlsx('data/envdata/REMEI_amplicon_sample_codes.xlsx',
                               skip = 1, col_names = T )  %>% 
   # We select only the ones in Selected filenames and without FAILED
@@ -532,36 +529,63 @@ exp.data %>%
   colnames()
 
 #activar plyr, desactivar dplyr 
+library(plyr)
 exp.data <- exp.data %>% 
   rename(c("Type" = "type", "Treatment" = "treatment", "Light Regime" = "light_regime",
            "Replicate" = "replicate", "Time" = "time", "Hours" = "hours", "Season" = "season", 
            "Fraction" = "fraction", "Sample-Name" = "sample_name" ,"Sample Code" = "sample_code",  
            "SelectedFileName" = "selected_file_name", "Reads"= "reads", "FileName1" = "file_name1",
            "Reads1" = "reads1", "Filename2" = "file_name2", "Reads2" = "reads2"))
+detach('package:plyr', unload= T)
 
 exp.data_remiau <- exp.data %>% 
-  bind_rows(list(exp.data_miau_filt, exp.data))
-
-# Filtering ---------------------------------------------------------------
-# Keeping only samples and taxonomy of interest
-#ab.filt_gtbd <- seqtab_pool[ exp.data$selected_file_name, tax.filt.gtbd$sequence]
-ab.filt_silva <- seqtab_clust[exp.data_remiau$selected_file_name, tax_silva_remiau$sequence]
-
-exp.data_remiau$selected_file_name %>%
-  dim()
-
-seqtab_clust %>%
-  dim()
-
-tax_silva_remiau  %>%
-  dim()
-
+  bind_rows(exp.data_miau_filt) ##296 samples REMEI + t0 de MIAU 4
+ 
 exp.data_remiau %>%
   dim()
 
+# Filtering ---------------------------------------------------------------
+# Keeping only samples and taxonomy of interest
+dim(seqtab_unclust) #711 samples 33099 asv
+dim(exp.data_remiau) # 296 samples
+dim(tax_silva_remiau) #14325 asv (sense cloroplasts and mitocondria)
+#ab.filt_silva <- seqtab_pool[ exp.data$selected_file_name, tax.filt.silva$sequence]
+##error subíndice fuera de los límites
+#ab.filt_silva <- seqtab_clust[exp.data_remiau$selected_file_name, tax_silva_remiau$sequence]
+
+#filter by samples of interest
+seqtab_filt <- seqtab_unclust %>%
+  as_tibble(rownames = 'selected_file_name') %>%
+  right_join(exp.data_remiau, by = 'selected_file_name') ##296 samples
+
+# seqtab_unclust$selected_file_names
+# exp.data_remiau$selected_file_name
+# seqtab_unclust %>%
+#   rownames()
+
+# exp.data_remiau %$%
+#   selected_file_name %>%
+#   unique()
+# 
+# exp.data_remiau %>%
+#   dim()
+# seqtab_clust_filt %>%
+#   colnames()
+
+##filter by taxonomy of interest
+ab.filt_silva <- seqtab_filt %>%
+  t() %>%
+  row_to_names(row_number = 1) %>%
+  as_tibble(rownames = 'sequence') %>%
+  right_join(tax_silva_remiau, by = 'sequence') %>%
+  select(-c(298:304)) %>% #remove cols with taxonomy information
+  t() %>%
+  row_to_names(row_number = 1) %>%
+  as_tibble(rownames = NA)
+
 # How many samples do we have? 
 #dim(ab.filt_gtbd) ##consensus:292 and 5154 asv, pool: 4599
-dim(ab.filt_silva) ##consensus: 292 and 6610 asv,pool: 5670
+dim(ab.filt_silva) ##pool:  296 and 6610 asv,pool: 14325
 
 # Putting control and predator-free t0 in the right place -----------------
 
@@ -590,7 +614,7 @@ change_t0s <- function(df){
     return()
 }
 
-newexp.data <- change_t0s(exp.data) 
+newexp.data <- change_t0s(exp.data_remiau) 
 
 samnames <- filter(newexp.data, !is.na(selected_file_name_new)) %>%
   pull(selected_file_name)
@@ -608,7 +632,7 @@ exp.data <- newexp.data %>%
   mutate( selected_file_name = ifelse(is.na(selected_file_name_new), selected_file_name, 
                                       selected_file_name_new))
 dim(newexp.data)
-dim(exp.data) ##312 samples
+dim(exp.data) ##316 samples
 dim(ab.filt_silva)
 
 exp.data %>% 
@@ -616,18 +640,176 @@ exp.data %>%
 ab.filt_silva %>% 
   sample_names()
 
+# fc %T>% 
+#   colnames() %>%
+#   head()
+# fc <- fc %>% 
+#   rename(c("All" = "fc", "Treatment" = "treatment", "Light Regime" = "light_regime",
+#            "Replicate" = "replicate", "Hours_dec" = "hours_dec", "Time" = "time",  "Season" = "season"))
+fc <- readxl::read_xlsx('data/envdata/Final_Data_FC_PB_Remei_experiments_ed5.xlsx',
+                        col_names = T )
 
+exp.data <- exp.data %>% 
+  left_join(fc, by = c("treatment", "replicate", "time", "season"))
+dim(exp.data)
+# exp.data %>% 
+#   View()
 
-##MIAU DATA subset------
+# Phyloseq creation -------------------------------------------------------
+# Putting cooler names to the project 
+samnames <- exp.data$selected_file_name %>%
+  str_split(pattern = "_",simplify = T) %>%
+  # Keep only the first column
+  .[,1]
+
+length(samnames)
+length(unique(samnames))
+# Golden is the numbers are equal 
+
+rownames(ab.filt_silva) <- samnames
+rownames(exp.data) <- samnames
+
+ab.filt_silva_ed <- ab.filt_silva %>%
+  rownames_to_column(var = 'selected_file_name') %>%
+  mutate(across(c(where(is.character), -selected_file_name), as.numeric)) %>%
+  as_tibble()
+
+# Phyloseq
+ab.filt_silva_ed %>%
+  glimpse()
+ASV <- otu_table(ab.filt_silva_ed, taxa_are_rows = F)
+TAX <- tax_table(as.matrix(tax_silva_remiau %>% column_to_rownames(var = 'sequence')))
+DAT <- sample_data(exp.data %>% as.data.frame()) 
+
+remiau.phy.fcs <- phyloseq(ASV,TAX,DAT)
+saveRDS(remiau.phy.fcs, 'data/intermediate_files/remiau_phyloseq_silva_fc.rds')
+
+#MIAU DATA subset ALL MIAU experiments (common ASV names with REMEI experiment)------------
 exp.data_miau <- read.table('/Users/onadeulofeucapo/Documentos/Doctorat/MIAU_seqs/sample_labels.txt', sep = '\t')
 
-exp.data_miau_filt %>%
+exp.data_miau %>%
   head()
 
-##filter tax 
-tax_silva_remiau <- tax_silva_remiau %>% 
+##abundance table
+seqtab_unclust <- readRDS("data/dada2/02_nochimera_mergeruns/remei_1_2_miau_1_pool/remei_1_2_miau_1_pool_seqtab_final.rds")
+seqtab_unclust %>%
+  dim() ##711 samples with 33099 ASV
+
+tax_silva_remiau <- readRDS("data/dada2/03_taxonomy/remei_1_2_miau_1_silva_pool/remei_1_2_miau_1_silva_pool_tax_assignation.rds") %>% 
+  as_tibble(rownames = 'sequence')
+
+##treballo amb SILVA perquè va millor pels amplicons però si vull comparar-ho amb MAGs tinc també la classifació GTBD
+tax_silva_miau <- tax_silva_remiau %>% 
   #Filter all results without domain assignation 
   filter(!is.na(domain), !is.na(phylum)) %>% 
   #And the Chloros/Mitochondria seqs
   filter( order !=  'Chloroplast') %>% 
   filter( family !=  'Mitochondria')
+
+tax_silva_miau %>%
+  dim() ##14325 ASV de 33099
+
+# Environmental data MIAU sequencing but for in situ REMEI experiments ------------------------------------------------------
+exp.data_miau <- read.table('/Users/onadeulofeucapo/Documentos/Doctorat/MIAU_seqs/sample_labels.txt', sep = '\t') %>%
+  as_tibble()
+
+colnames(exp.data_miau)  = exp.data_miau[1,]
+exp.data_miau <- exp.data_miau[-1,]
+exp.data_miau %>%
+  head()
+
+# Filtering ---------------------------------------------------------------
+# Keeping only samples and taxonomy of interest
+dim(seqtab_unclust) #711 samples 33099 asv
+dim(exp.data_miau) # 263 samples
+dim(tax_silva_remiau) #14325 asv (sense cloroplasts and mitocondria)
+#ab.filt_silva <- seqtab_pool[ exp.data$selected_file_name, tax.filt.silva$sequence]
+##error subíndice fuera de los límites
+#ab.filt_silva <- seqtab_clust[exp.data_remiau$selected_file_name, tax_silva_remiau$sequence]
+
+#filter by samples of interest
+seqtab_filt <- seqtab_unclust %>%
+  as_tibble(rownames = 'selected_file_name') %>%
+  right_join(exp.data_miau, by =c('selected_file_name'=  'seq_code')) ##263 samples
+
+seqtab_filt %>%
+  dim()
+# seqtab_unclust$selected_file_names
+# exp.data_remiau$selected_file_name
+# seqtab_unclust %>%
+#   rownames()
+
+# exp.data_remiau %$%
+#   selected_file_name %>%
+#   unique()
+# 
+# exp.data_remiau %>%
+#   dim()
+# seqtab_clust_filt %>%
+#   colnames()
+
+##filter by taxonomy of interest
+ab.filt_silva <- seqtab_filt %>%
+  t() %>%
+  row_to_names(row_number = 1) %>%
+  as_tibble(rownames = 'sequence') %>%
+  right_join(tax_silva_miau, by = 'sequence') %>%
+  select(-c(263:269)) %>% #remove cols with taxonomy information
+  t() %>%
+  row_to_names(row_number = 1) %>%
+  as_tibble(rownames = NA)
+
+# How many samples do we have? 
+#dim(ab.filt_gtbd) ##consensus:292 and 5154 asv, pool: 4599
+dim(ab.filt_silva) ##pool:  262 and 14325 asv
+
+
+# fc %T>% 
+#   colnames() %>%
+#   head()
+# fc <- fc %>% 
+#   rename(c("All" = "fc", "Treatment" = "treatment", "Light Regime" = "light_regime",
+#            "Replicate" = "replicate", "Hours_dec" = "hours_dec", "Time" = "time",  "Season" = "season"))
+
+#PENDENT NO TINC LES CITOMETRIES ENDREÇADES DE MIAU
+fc <- readxl::read_xlsx('data/envdata/Final_Data_FC_PB_Remei_experiments_ed4.xlsx',
+                        col_names = T )
+
+exp.data <- exp.data_miau_filt %>% 
+  left_join(fc, by = c("treatment", "replicate", "time", "season"))
+dim(exp.data)
+# exp.data %>% 
+#   View()
+
+# Phyloseq creation -------------------------------------------------------
+# Putting cooler names to the project 
+exp.data_miau %>%
+  head()
+samnames <- exp.data_miau$Sample_ID 
+#%>%
+  #str_split(pattern = "_",simplify = T) %>%
+  # Keep only the first column
+  #.[,1]
+
+length(samnames)
+length(unique(samnames))
+# Golden is the numbers are equal 
+
+rownames(ab.filt_silva) <- samnames
+rownames(exp.data_miau) <- samnames
+
+ab.filt_silva_ed <- ab.filt_silva %>%
+  rownames_to_column(var = 'selected_file_name') %>%
+  mutate(across(c(where(is.character), -selected_file_name), as.numeric)) %>%
+  as_tibble()
+
+##SAMPLE NAMES DO NOT MATCH
+# Phyloseq
+ASV <- otu_table(ab.filt_silva_ed, taxa_are_rows = F)
+TAX <- tax_table(as.matrix(tax_silva_miau %>% column_to_rownames(var = 'sequence')))
+DAT <- sample_data(exp.data_miau %>% as.data.frame(), sample_names(seq_code)) 
+
+miau.phy.fcs <- phyloseq(ASV,TAX,DAT)
+
+saveRDS(miau.phy.fcs, '../MIAU_seqs/intermediate_files/miau_phyloseq_silva.rds')
+
