@@ -2,10 +2,58 @@
 # Growth rates of marine prokayotesare extremely diverse, even among closely related taxa
 # Code developed by Ona Deulofeu-Capo.
 
-
+#Session information----
 sessionInfo()
 
-##packages used
+# R version 4.2.3 (2023-03-15)
+# Platform: x86_64-apple-darwin17.0 (64-bit)
+# Running under: macOS Ventura 13.2.1
+# 
+# Matrix products: default
+# LAPACK: /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib
+# 
+# locale:
+#   [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+# 
+# attached base packages:
+#   [1] stats4    stats     graphics  grDevices utils     datasets  methods   base     
+# 
+# other attached packages:
+#   [1] Biostrings_2.66.0      GenomeInfoDb_1.34.9    XVector_0.38.0         IRanges_2.32.0         S4Vectors_0.36.2      
+# [6] BiocGenerics_0.44.0    seqinr_4.2-23          stringi_1.7.12         janitor_2.2.0          ggraph_2.1.0          
+# [11] igraph_1.4.1           FSA_0.9.4              ggpmisc_0.5.2          ggpp_0.5.1             multcompView_0.1-8    
+# [16] rstatix_0.7.2          ggpubr_0.6.0           ggridges_0.5.4         ggforce_0.4.1          multipanelfigure_2.1.2
+# [21] gridExtra_2.3          microbiome_1.20.0      scales_1.2.1           vegan_2.6-4            lattice_0.20-45       
+# [26] permute_0.9-7          speedyseq_0.5.3.9018   reshape2_1.4.4         magrittr_2.0.3         lubridate_1.9.2       
+# [31] forcats_1.0.0          stringr_1.5.0          dplyr_1.1.1            purrr_1.0.1            readr_2.1.4           
+# [36] tidyr_1.3.0            tibble_3.2.1           ggplot2_3.4.1          tidyverse_2.0.0        phyloseq_1.42.0       
+# 
+# loaded via a namespace (and not attached):
+#   [1] Rtsne_0.16                 assertive.base_0.0-9       colorspace_2.1-0           ggsignif_0.6.4            
+# [5] snakecase_0.11.0           rstudioapi_0.14            farver_2.1.1               graphlayouts_0.8.4        
+# [9] MatrixModels_0.5-1         ggrepel_0.9.3              fansi_1.0.4                codetools_0.2-19          
+# [13] splines_4.2.3              confintr_0.2.0             polyclip_1.10-4            dunn.test_1.3.5           
+# [17] ade4_1.7-22                polynom_1.4-1              jsonlite_1.8.4             broom_1.0.4               
+# [21] cluster_2.1.4              BiocManager_1.30.20        compiler_4.2.3             backports_1.4.1           
+# [25] Matrix_1.5-3               cli_3.6.1                  tweenr_2.0.2               quantreg_5.94             
+# [29] tools_4.2.3                gtable_0.3.3               glue_1.6.2                 GenomeInfoDbData_1.2.9    
+# [33] Rcpp_1.0.10                carData_3.0-5              Biobase_2.58.0             cellranger_1.1.0          
+# [37] vctrs_0.6.1                rhdf5filters_1.10.1        multtest_2.54.0            ape_5.7-1                 
+# [41] nlme_3.1-162               iterators_1.0.14           assertive.files_0.0-2      timechange_0.2.0          
+# [45] lifecycle_1.0.3            zlibbioc_1.44.0            MASS_7.3-58.3              tidygraph_1.2.3           
+# [49] hms_1.1.3                  parallel_4.2.3             biomformat_1.26.0          rhdf5_2.42.0              
+# [53] SparseM_1.81               foreach_1.5.2              boot_1.3-28.1              rlang_1.1.0               
+# [57] pkgconfig_2.0.3            bitops_1.0-7               Rhdf5lib_1.20.0            labeling_0.4.2            
+# [61] assertive.properties_0.0-5 cowplot_1.1.1              tidyselect_1.2.0           plyr_1.8.8                
+# [65] R6_2.5.1                   magick_2.7.4               generics_0.1.3             pillar_1.9.0              
+# [69] withr_2.5.0                mgcv_1.8-42                assertive.numbers_0.0-2    survival_3.5-5            
+# [73] abind_1.4-5                RCurl_1.98-1.12            crayon_1.5.2               car_3.1-2                 
+# [77] assertive.types_0.0-3      utf8_1.2.3                 tzdb_0.3.0                 viridis_0.6.2             
+# [81] grid_4.2.3                 readxl_1.4.2               data.table_1.14.8          digest_0.6.31             
+# [85] gridGraphics_0.5-1         munsell_0.5.0              viridisLite_0.4.1   
+
+
+##packages used ----
 library(tidyverse)
 library(magrittr)
 library(reshape2)
@@ -26,26 +74,34 @@ library(multcompView)
 library(ggpmisc) ##stat_poli_line and equation
 library(stringr)
 library(FSA)##test the d
-        
+library(lubridate)
+library(igraph)
+library(ggraph)
+library(janitor)
+library(stringi)
+library(seqinr)
+library(Biostrings)
+
 
 #define directory ----
 setwd ("~/Documentos/Doctorat/REMEI/")
 
-# importing functions ----
+
+# import functions ----
 source("src/pseudoabundances_calculation_fc.R") ## for calculating pseudoabundances
 source("src/filter.season.treatment.time.R") ## filter for calculating regressions
 source("src/multiple.linear.regressions.R") ## multiple linear regressions
 source("src/comparing.reg.R") ## comparisons between 3 times and 4 times regressions
 source('src/growth.rates.distr.tax.ranks.ridges.divided.R') ##distribution plots
 source('src/growth.rates.distr.tax.ranks.ridges.R') ##distribution plots divided by classes
+source("src/calculate_common_asv_conditions.R") ##calculate common responsive ASVs between treatments and seasons
+source("src/calculate_exclusive_asv_condition.R") ##calculate unique responsive ASVs at each treatment and season
 
-#packages
-library(lubridate)
-library(scales)
 
 # import data ----
 rem_fc <- readRDS("./data/intermediate_files/remei_phyloseq_silva_fc.rds") #phyloseq object with otu_table, sample data and taxonomu
 #sample data must have total abundance data to be able to calculate pseudoabundances
+
 
 #palettes used ----
 palette_seasons_4 <- c("Winter" = "#002562", 'Spring' = "#519741", 'Summer' = "#ffb900",'Fall' =  "#96220a")
@@ -88,6 +144,7 @@ palette_class_assigned <- c('Gammaproteobacteria' = '#fcca46', 'Alphaproteobacte
                             'Babeliae' = '#5b95e5', 'Saccharimonadia' = '#33af9c', 'Cloacimonadia' = '#fbed5c',
                             'Synergistia' = '#ce7800', 'Abditibacteria' = '#87878b', 'Deferribacteres' = '#4dbaa9')
 
+
 ##information from my dataset----
 rem_fc %>% 
   summarize_phyloseq()
@@ -115,6 +172,8 @@ rem_fc_filt#4594 ASVs
 rem_fc_filt@tax_table <- rem_fc_filt@tax_table %>% 
   mutate_tax_table(asv_num = str_c( 'asv' , 1:ncol(rem_fc_filt@otu_table)))
 
+
+
 # ----- 1. RELATIVE ABUNDANCES FOR EACH ASV ################     ----------
 rem_fc_relabun <- phyloseq::transform_sample_counts(rem_fc_filt, 
                                                     function(x)
@@ -124,7 +183,8 @@ rem_fc_relabun <- phyloseq::transform_sample_counts(rem_fc_filt,
 # ----- 2. CALCULATE PSEUDOABUNDANCES  ################     ----------
 ##we melt the data to create a tidy dataset
 rem_relabun_melt <- psmelt(rem_fc_relabun) %>%
-  as_tibble
+  as_tibble () %>%
+  dplyr::filter(season != 'Early_fall')
 
 #write.table(rem_relabun_melt, "data/rem_relabun_melt.txt", sep= "\t")
 
@@ -140,7 +200,7 @@ pseudoabund_df_wide_fc <- pseudoabund_df_fc %>% ## data transformed to wide form
 #write.table(pseudoabund_df_wide_fc, "data/intermediate_files/regressions_test_datasets/psueodabund_df_fc_wide_silva.txt", sep = "\t")
 
 
-# ----- 3. MULTIPLE LINEAR REGRESSIONS TO CALCULATE THE SLOPE (I.E. GROWTH) FOR EACH ASV AT EACH CONDITION (SEASON-TREATMENT) ################     ----------
+# ----- 3. MULTIPLE LINEAR REGRESSIONS TO CALCULATE THE SLOPE (I.E. GROWTH) FOR EACH ASV AT EACH CONDITION (SEASON-TREATMENT)################     ----------
 
 ## 3.1 Prepare  datasets for calculating regressions
  
@@ -245,6 +305,7 @@ reg_all_t023_silva <- bind_rows(reg_winter,
 #write.table(reg_all_t0234_silva, "data/intermediate_files/asv_reg_all_t0234_silva.txt", sep = "\t")
 
 
+
 # ----- 4. COMPARISON BETWEEN 3 TIMES AND 4 TIMES SLOPES ################     ----------------
 
 ## import data 
@@ -269,7 +330,86 @@ reg_all_slopes_chosen_silva_tax <- reg_all_slopes_chosen_silva %>%
 
 #write.csv(reg_all_slopes_chosen_silva_tax, "data/intermediate_files/reg_all_slopes_chosen_silva_tax_corrected_asv_num.csv")
 
-# ----- 5. VIOLIN PLOTS SINGLE-ASV BASED GROWTH RATES AND ABUNDANCE-BASED GROWTH RATES (FIGURE 1) ----------------
+
+## growth rates example calculation (figure 1) ----
+pseudoabund_df_wide_fc$season <-  pseudoabund_df_wide_fc$season %>% factor( 
+  levels = (c('Winter', 'Spring', 'Summer', 'Fall', 'Early_fall')))
+pseudoabund_df_wide_fc$treatment <- pseudoabund_df_wide_fc$treatment %>%
+  factor(levels=(c("CL", "CD", "PL", "PD", "DL", "VL")))
+
+## 4 times
+t4_exemple <- 
+  pseudoabund_df_wide_fc %>%
+  dplyr::select(1:5, 'asv2') %>%
+  subset(season != "Early_fall" & 
+           treatment == 'DL') %>%
+  pivot_longer(cols = starts_with('asv'), names_to = 'asv_num', values_to = 'pseudoabund') %>%
+  left_join(reg_all_slopes_chosen_silva_tax, by = 'asv_num') %>%
+  ggplot(aes(hours.x, log(pseudoabund), color = season.x, shape = treatment.x))+
+  geom_point(shape = 7, size = 3)+
+  stat_poly_line(aes(group = season.x), mf.values = TRUE)+
+  stat_poly_eq(aes(
+    label =  paste(after_stat(p.value.label))), 
+    formula = x ~ log(y),
+    method = stats::lm,
+    p.digits = 2, 
+    coef.keep.zeros = T, #npcx = 1, npcy =1,
+    na.rm = FALSE)+
+  scale_y_continuous(labels = scales::scientific, breaks = c(5e+00, 1e+01), limits = c(2e+00, 1.25e+01))+
+  labs(y = 'log(ASV2 pseudoabundance)', x = 'Time (h)')+
+  scale_color_manual(values = palette_seasons_4)+
+  theme_bw()+
+  theme(strip.text = element_text(size = 12), axis.text.x = element_text(angle = 0), legend.position = "none",
+        strip.background = element_blank(), strip.placement = 'outside',
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.margin=unit(c(0.5,0.25,0.5,0.5),"cm")) 
+
+## 3 times
+t3_exemple <- 
+  pseudoabund_df_wide_fc %>%
+  dplyr::select(1:5, 'asv2') %>%
+  subset(season != "Early_fall" & 
+           treatment == 'DL' &
+           time != 't4')%>%
+  pivot_longer(cols = starts_with('asv'), names_to = 'asv_num', values_to = 'pseudoabund') %>%
+  left_join(reg_all_slopes_chosen_silva_tax, by = 'asv_num') %>%
+  ggplot(aes(hours.x, log(pseudoabund), color = season.x))+
+  geom_point(shape = 7, size = 3)+
+  scale_y_continuous(labels = scales::scientific, breaks = c(5e+00, 1e+01), limits = c(2e+00, 1.25e+01))+
+  stat_poly_line(aes(group = season.x), method = 'lm')+
+  labs(y = 'log(ASV2 pseudoabundance)', x = 'Time (h)', color = 'Season', shape = 'Treatment')+
+  scale_color_manual(values = palette_seasons_4)+
+  scale_x_continuous(limits = c(0,50))+
+  stat_poly_eq(aes(
+    label =  paste(after_stat(p.value.label))), 
+    formula = x ~ log(y),
+    method = stats::lm,
+    p.digits = 2, 
+    coef.keep.zeros = T,
+    na.rm = FALSE)+
+  scale_shape_manual(name = 'Treatment', labels = 'DL', values = 12)+
+  theme_bw()+
+  theme(strip.text = element_blank(), axis.text.x = element_text(angle = 0), legend.position = "right",
+        axis.title.y = element_blank(), strip.background = element_blank(), axis.text.y = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        plot.margin=unit(c(0.5,0,0.5,0),"cm")) 
+
+example_gr_calculation <- multi_panel_figure(columns = 2, rows = 1, width = 250, height = 150, 
+                                             column_spacing = 0.0, unit = 'mm',
+                                             panel_label_type = 'none')
+
+example_gr_calculation  %<>%
+  fill_panel(t4_exemple, column = 1, row = 1) %<>%
+  fill_panel(t3_exemple, column = 2, row = 1)
+
+# ggsave('example_gr_calculation3.pdf', example_gr_calculation , 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 250,
+#        height = 150,
+#        units = 'mm')
+
+
+# ----- 5. VIOLIN PLOTS SINGLE-ASV BASED GROWTH RATES AND ABUNDANCE-BASED GROWTH RATES ################ ----------------
 
 ##filter only keep significant and positive slopes
 reg_all_slopes_chosen_silva_tax <-  reg_all_slopes_chosen_silva_tax %>%
@@ -298,7 +438,9 @@ reg_all_slopes_chosen_silva_tax_1perc$treatment <- reg_all_slopes_chosen_silva_t
 reg_all_slopes_chosen_silva_tax_1perc$season <- reg_all_slopes_chosen_silva_tax_1perc$season %>% 
   factor(levels=(c("Winter", "Spring", "Summer", "Fall")))
 
-#statistics seasons----
+
+
+### statistics seasons----
 anova<-aov(slope_chosen_days ~season, data = reg_all_slopes_chosen_silva_tax_1perc)
 summary(anova) #p<0.05 ***
 TukeyHSD(anova)#para ver los grupos que son significativamente distintos
@@ -339,7 +481,7 @@ seas <- reg_all_slopes_chosen_silva_tax_1perc %>%
   theme(strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0), legend.position = "none",
         panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
-## statistics treatments----
+### statistics treatments----
 anova<-aov(slope_chosen_days ~ treatment, data = reg_all_slopes_chosen_silva_tax_1perc)
 summary(anova) #p<0.05 ***
 TukeyHSD(anova)
@@ -416,7 +558,7 @@ cld <- multcompLetters4(anova, tukey)
 # table with factors and 3rd quantile
 dt <- GR_dapis_OS_filt %>%
   group_by(season) %>%
-  summarise(w=mean(PRO), sd = sd(PRO)) %>%
+  dplyr::summarise(w=mean(PRO), sd = sd(PRO)) %>%
   arrange(desc(w))
 
 # extracting the compact letter display and adding to the Tk table
@@ -446,21 +588,19 @@ gr_dapis_seas <-
   theme(strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0), legend.position = "right",
         panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
-##Treatments
+### statistics treatments -----
 anova<-aov(PRO~treatment, data = GR_dapis_OS_filt)
 summary(anova) #p<0.05 ***
-tuk<- TukeyHSD(anova)#para ver los grupos que son significativamente distintos Summer i Winter no son distintos y Fall i Spring tampoco
+tuk<- TukeyHSD(anova)#
 aov_residuals <- residuals(object = anova)
 plot(anova, 1)
 plot(anova, 2)
 shapiro.test(x = aov_residuals )#From the output, the p-value > 0.05 implying that the distribution of the data are #not significantly different from normal distribution. In other words, we can assume the normality.
-##p-value = 0.003229 NO és normal 
-#si no es normal:
-#test no parametrico
-kruskal.test(PRO ~ season, data = GR_dapis_OS_filt) #
-#si sale p<0.05 hago dunn test para ver cuales son significativamente distintos
-#p-value = 3.598e-06
-library(FSA)##test the d
+##p-value = 0.003229 NO normal 
+#test no parametric
+kruskal.test(PRO ~ treatment, data = GR_dapis_OS_filt) #
+#p<0.05 hago dunn test 
+#p-value = 1.375e-05
 duntest <- dunnTest(PRO~treatment, data = GR_dapis_OS_filt,
                     method= 'bonferroni')
 results<-dunnTest(PRO~treatment, data = GR_dapis_OS_filt,
@@ -474,7 +614,7 @@ names(X) = gsub(" ",  "",  results$Comparison)
 multcompLetters(X)
 letters_dapis_treat <- data.frame(multcompLetters(X)['Letters'])
 
-#    CD    CL    DL    PD    PL    VL 
+# CD    CL    DL    PD    PL    VL 
 # "ab"   "a"   "c" "abc"  "bc"   "c" 
 
 gr_dapis_treat <- 
@@ -494,7 +634,7 @@ gr_dapis_treat <-
         panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 
-## Pannel construction figure 1 ----
+## Panel construction figure 1 ----
 gr_asv_dapis <- grid.arrange(treat, gr_dapis_treat, seas, gr_dapis_seas)
 # 
 # ggsave('GR_asv_dapis_stat.pdf', gr_asv_dapis, path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
@@ -503,12 +643,2300 @@ gr_asv_dapis <- grid.arrange(treat, gr_dapis_treat, seas, gr_dapis_seas)
 #        units = 'mm')
 
 
-# 5. GROWTH RATES DISTRIBUTION PATTERNS AT DIFFERENT TAXONOMIC RANKS -----
+
+
+# ----- 6. GROWTH RATES DISTRIBUTION PATTERNS AT DIFFERENT TAXONOMIC RANKS ################ ----------------
+
+## prepare the dataset for plotting ----
+## reorder factors for plots
 reg_all_slopes_chosen_silva_tax$treatment <- reg_all_slopes_chosen_silva_tax$treatment %>% 
 factor(levels=(c("CL", "CD", "PL", "PD", "DL", "VL")))
 reg_all_slopes_chosen_silva_tax$season <- reg_all_slopes_chosen_silva_tax$season %>% 
   factor(levels=(c("Winter", "Spring", "Summer", "Fall")))
 
-##transform slopes /hours to /days
+# #transform slopes /hours to /days
 reg_all_slopes_chosen_silva_tax <- reg_all_slopes_chosen_silva_tax %>%
   mutate(slope_chosen_days = slope_chosen*24)
+
+## new factors for taxonomy to plot them correctly
+reg_all_slopes_chosen_silva_tax <- reg_all_slopes_chosen_silva_tax %>%
+  mutate(domain_f = as_factor(domain),
+         phylum_f = as_factor(phylum),
+         class_f = as_factor(class),
+         order_f = as_factor(order),
+         family_f = as_factor(family),
+         genus_f = as_factor(genus),
+         asv_f = as_factor(asv_num))
+
+reg_all_slopes_chosen_silva_tax %>%
+  colnames()
+
+reg_all_slopes_chosen_silva_tax$phylum_f <-  factor(reg_all_slopes_chosen_silva_tax$phylum_f, 
+                                                    levels=unique(
+                                                      reg_all_slopes_chosen_silva_tax$phylum_f[
+                                                        order(reg_all_slopes_chosen_silva_tax$domain_f)]), 
+                                                    ordered=TRUE)
+reg_all_slopes_chosen_silva_tax$phylum_f %>% levels()
+
+reg_all_slopes_chosen_silva_tax$class_f <-  factor(reg_all_slopes_chosen_silva_tax$class_f, 
+                                                   levels=unique(
+                                                     reg_all_slopes_chosen_silva_tax$class_f[
+                                                       order(reg_all_slopes_chosen_silva_tax$domain_f,
+                                                             reg_all_slopes_chosen_silva_tax$phylum_f)]), 
+                                                   ordered=TRUE)
+
+reg_all_slopes_chosen_silva_tax$order_f <-  factor(reg_all_slopes_chosen_silva_tax$order_f, 
+                                                   levels=unique(
+                                                     reg_all_slopes_chosen_silva_tax$order_f[
+                                                       order(reg_all_slopes_chosen_silva_tax$domain_f,
+                                                             reg_all_slopes_chosen_silva_tax$phylum_f,
+                                                             reg_all_slopes_chosen_silva_tax$class_f)]), 
+                                                   ordered=TRUE)
+
+reg_all_slopes_chosen_silva_tax$family_f <-  factor(reg_all_slopes_chosen_silva_tax$family_f, 
+                                                    levels=unique(
+                                                      reg_all_slopes_chosen_silva_tax$family_f[
+                                                        order(reg_all_slopes_chosen_silva_tax$domain_f,
+                                                              reg_all_slopes_chosen_silva_tax$phylum_f,
+                                                              reg_all_slopes_chosen_silva_tax$class_f,
+                                                              reg_all_slopes_chosen_silva_tax$order_f)]), 
+                                                    ordered=TRUE)
+
+reg_all_slopes_chosen_silva_tax$genus_f <-  factor(reg_all_slopes_chosen_silva_tax$genus_f, 
+                                                   levels=unique(
+                                                     reg_all_slopes_chosen_silva_tax$genus_f[
+                                                       order(reg_all_slopes_chosen_silva_tax$domain_f,
+                                                             reg_all_slopes_chosen_silva_tax$phylum_f,
+                                                             reg_all_slopes_chosen_silva_tax$class_f,
+                                                             reg_all_slopes_chosen_silva_tax$order_f,
+                                                             reg_all_slopes_chosen_silva_tax$family_f)]), 
+                                                   ordered=TRUE)
+
+reg_all_slopes_chosen_silva_tax$asv_f <-  factor(reg_all_slopes_chosen_silva_tax$asv_f, 
+                                                 levels=unique(
+                                                   reg_all_slopes_chosen_silva_tax$asv_f[
+                                                     order(reg_all_slopes_chosen_silva_tax$domain_f,
+                                                           reg_all_slopes_chosen_silva_tax$phylum_f,
+                                                           reg_all_slopes_chosen_silva_tax$class_f,
+                                                           reg_all_slopes_chosen_silva_tax$order_f,
+                                                           reg_all_slopes_chosen_silva_tax$family_f,
+                                                           reg_all_slopes_chosen_silva_tax$genus_f)]), 
+                                                 ordered=TRUE)
+## Distribution plots at different taxonomic ranks ----
+reg_all_slopes_chosen_silva_tax <- reg_all_slopes_chosen_silva_tax  %>%
+  ungroup() %>%
+  mutate(phylum_f = fct_rev(fct_infreq(phylum_f)))
+
+counts <-   reg_all_slopes_chosen_silva_tax %>% #number of growth rates calculated by phylum
+  group_by(phylum_f) %>%
+  dplyr::filter(n() >= 2) %>%
+  mutate(counts = n()) %>%
+  as_tibble() %>%
+  group_by(phylum_f, counts) %>%
+  dplyr::summarize() %>%
+  as_tibble()
+
+ridge_ph <- # distribution plot at phylum taxonomic rank
+  reg_all_slopes_chosen_silva_tax %>%
+  group_by(phylum_f) %>%
+  dplyr::filter(n() >= 2) %>%
+  mutate(counts = paste('n = ', n())) %>% #
+  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f,  group = phylum_f, label = counts))+
+  geom_density_ridges(alpha = 0.8, panel_scaling = TRUE, scale = 1,
+                      jittered_points = TRUE,
+                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
+                      quantile_lines = TRUE,
+                      quantile_fun = mean)+
+  scale_fill_manual(values = palette_phylums_assigned)+
+  scale_x_continuous(limits = c(0,11))+
+  coord_cartesian(clip = "off") +
+  geom_text(nudge_x = 8.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
+  labs(y = '', fill= 'Phylum', x = expression("Growth rate day"^"-1"), title = 'Phylum')+
+  theme_bw()+
+  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 12),
+        plot.margin= unit(c(1, 1, 0.2, 0.2), "lines"), panel.border = element_blank())
+
+ridge_cl <- reg_all_slopes_chosen_silva_tax %>% # distribution plot at class taxonomic rank
+  group_by(phylum_f) %>%
+  dplyr::filter(n() >= 2) %>%
+  group_by(phylum_f) %>%
+  mutate(counts = paste('n = ', n())) %>% #
+  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f, label = counts))+
+  geom_density_ridges(aes(fill = phylum_f, group = class_f), scale = 1, alpha = 0.7,
+                      jittered_points = TRUE,
+                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
+                      quantile_lines = TRUE,
+                      quantile_fun = mean)+
+  scale_fill_manual(values = palette_phylums_assigned)+
+  labs(y = 'Class', fill= 'Phylum', x =expression("Growth rate day"^"-1"), title = 'Class')+
+  scale_x_continuous(limits = c(0,11))+
+  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
+  theme_bw()+
+  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
+        plot.margin= unit(c(1, 1, 0.2, 0.2), "lines"), axis.title.y = element_blank(), panel.border = element_blank())
+
+ridge_o <- reg_all_slopes_chosen_silva_tax %>% # distribution plot at order taxonomic rank
+  group_by(phylum_f) %>%
+  dplyr::filter(n() >= 2) %>%
+  ungroup() %>%
+  group_by(phylum_f) %>%
+  mutate(counts = paste('n = ', n())) %>% #
+  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f, label = counts))+
+  geom_density_ridges(aes(fill = phylum_f, group = order_f), scale = 1.0, alpha = 0.6,
+                      jittered_points = TRUE,
+                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
+                      quantile_lines = TRUE,
+                      quantile_fun = mean)+
+  scale_fill_manual(values = palette_phylums_assigned)+
+  labs(y = '', fill= 'Phylum', x =expression("Growth rate day"^"-1"), title = 'Order')+
+  scale_x_continuous(limits = c(0,11))+
+  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
+  theme_bw()+
+  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
+        plot.margin= unit(c(1, 1, 0.2, 0.2), "lines"), panel.border = element_blank())
+
+ridge_f <- reg_all_slopes_chosen_silva_tax %>% # distribution plot at order taxonomic rank
+  group_by(phylum_f) %>%
+  dplyr::filter(n() >= 2) %>%
+  group_by(phylum_f) %>%
+  mutate(counts = paste('n = ', n())) %>%
+  ungroup() %>%
+  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f, label = counts))+
+  geom_density_ridges(aes(fill = phylum_f, group = family_f), scale = 1.0, alpha = 0.6,
+                      jittered_points = TRUE,
+                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
+                      quantile_lines = TRUE,
+                      quantile_fun = mean)+
+  scale_fill_manual(values = palette_phylums_assigned)+
+  labs(y = '', fill= 'Phylum', x =expression("Growth rate day"^"-1"), title = 'Family')+
+  scale_x_continuous(limits = c(0,11))+
+  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
+  theme_bw()+
+  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
+        plot.margin= unit(c(1, 1, 0.2, 0.2), "lines"), panel.border = element_blank())
+
+## reorder ASVs by phylum
+reg_all_slopes_chosen_silva_tax_asv_reorder <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(phylum_f) %>%
+  mutate(counts = paste('n = ', n())) %>% #
+  ungroup()
+
+reg_all_slopes_chosen_silva_tax_asv_reorder$phylum_f <- reg_all_slopes_chosen_silva_tax_asv_reorder$phylum_f %>%
+  factor( levels = c("Bacteroidota", "Proteobacteria", "Actinobacteriota",   "Cyanobacteria", "Planctomycetota",
+                     "Verrucomicrobiota",  "Firmicutes", "Crenarchaeota", "Campilobacterota", "Bdellovibrionota",
+                     "Acidobacteriota",
+                     "Nitrospinota",  "Nitrospirota",  "Myxococcota", "Desulfobacterota",
+                     "Deinococcota" , "Chloroflexi" , "Fusobacteriota", 
+                     "Spirochaetota",  "Abditibacteriota", "Latescibacterota",
+                     "Methylomirabilota", "Halanaerobiaeota", "Sumerlaeota", "Calditrichota", "Gemmatimonadota"), 
+          ordered = TRUE)
+
+ridge_a <- reg_all_slopes_chosen_silva_tax_asv_reorder %>% # distribution plot at ASV taxonomic rank
+  group_by(phylum_f) %>%
+  dplyr::filter(n() >= 2) %>%
+  ggplot(aes(y = fct_rev(phylum_f), x = slope_chosen_days, label = counts))+
+  geom_density_ridges(aes(fill = phylum_f, group = asv_f), scale = 1.0, alpha = 0.6,
+                      jittered_points = TRUE,
+                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
+                      quantile_lines = TRUE,
+                      quantile_fun = mean)+
+  scale_fill_manual(values = palette_phylums_assigned)+
+  labs(y = '', fill= 'Phylum', x =expression("Growth rate day"^"-1"), title = 'ASV')+
+  scale_x_continuous(limits = c(0,11))+
+  geom_text(nudge_x = 7.2, nudge_y = 0.35, check_overlap = TRUE, size = 3)+
+  coord_cartesian(clip = "off") +
+  theme_bw()+
+  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
+        plot.margin= unit(c(1, 1, 0.2, 0.2), "lines"), panel.border = element_blank())
+
+## Percentage of significant growth rates calculated by Phylum ------ 
+
+perc_gr_phylum <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(phylum_f) %>%
+  dplyr::filter(n() > 2) %>%
+  group_by(phylum_f, slope_chosen_days) %>% 
+  dplyr::summarize(n = n()) %>%
+  group_by(phylum_f) %>%
+  dplyr::summarize(n = n()) %>%
+  mutate(sum = sum(n),
+         perc = n/sum) %>%
+  ungroup() %>%
+  ggplot(aes(sum, perc, fill = phylum_f))+
+  geom_col(aes(fill = fct_reorder(phylum_f, perc, .desc = TRUE)))+ 
+  scale_y_continuous(labels = percent_format())+
+  scale_fill_manual(values = palette_phylums_assigned)+
+  labs(x = 'Phylum', y = 'Percentage of significant\ngrowth rates calculated', fill = 'Phylum')+
+  theme_bw()+
+  theme(axis.text.x = element_blank(), panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(), aspect.ratio = 10/2, panel.border = element_blank(),
+        axis.ticks = element_blank(), legend.position = 'none', axis.text.y = element_text(size = 12),
+        axis.title.y = element_text(size = 14))
+
+## Percentage of significant growth rates calculated at different taxonomic ranks ----
+x <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(phylum_f) %>%
+  dplyr::filter(n() > 2) %>%
+  dplyr::summarize(n = n()) %>%
+  dplyr::summarize(n = sum(n))
+  
+gr_asv_perc <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(asv_f) %>%
+  dplyr::filter(n() > 2) %>%
+  dplyr::summarize(n = n()) %>%
+  mutate(sum = sum(n),
+         asv_gr_perc = sum/x) %>%
+  dplyr::select(asv_gr_perc) %>%
+  unique() %>%
+  as_tibble()
+
+gr_f_perc <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(family) %>%
+  dplyr::filter(n() > 2) %>%
+  dplyr::summarize(n = n()) %>%
+  mutate(sum = sum(n),
+         f_gr_perc = sum/x) %>%
+  dplyr::select(f_gr_perc) %>%
+  unique() %>%
+  as_tibble()
+
+gr_o_perc <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(order) %>%
+  dplyr::filter(n() > 2) %>%
+  dplyr::summarize(n = n()) %>%
+  mutate(sum = sum(n),
+         order_gr_perc = sum/x) %>%
+  dplyr::select(order_gr_perc) %>%
+  unique() %>%
+  as_tibble()
+
+gr_c_perc <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(class) %>%
+  dplyr::filter(n() > 2) %>%
+  dplyr::summarize(n = n()) %>%
+  mutate(sum = sum(n),
+         class_gr_perc = sum/x) %>%
+  dplyr::select(class_gr_perc) %>%
+  unique() %>%
+  as_tibble()
+
+gr_p_perc <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(phylum) %>%
+  dplyr::filter(n() > 2) %>%
+  dplyr::summarize(n = n()) %>%
+  mutate(sum = sum(n),
+         phylum_gr_perc = sum/x) %>%
+  dplyr::select(phylum_gr_perc) %>%
+  unique() %>%
+  as_tibble() 
+
+labels_perc_gr_rank <-  as_labeller(c(phylum_gr_perc = 'Phylum',
+                                      class_gr_perc = 'Class',
+                                      order_gr_perc = 'Order',
+                                      f_gr_perc = 'Family',
+                                      asv_gr_perc = 'ASV'))
+
+gr_tax_ranks_perc <- cbind(gr_asv_perc, gr_f_perc, gr_o_perc, gr_c_perc, gr_p_perc) %>%
+  as_tibble() %>%
+  pivot_longer(cols = 1:5) %>%
+  ggplot(aes(x = as_factor(name), y = value$n, group = 1))+
+  geom_point()+
+  coord_flip()+
+  geom_line()+
+  labs(y='Percentage', x = 'Growth rates distribution plotted\nat different taxonomic ranks')+
+  scale_x_discrete(labels = labels_perc_gr_rank)+
+  scale_y_continuous(labels = percent_format())+
+  theme_bw()+
+  theme(aspect.ratio = 10/3, panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.position = 'none', axis.text.y = element_text(size = 12),
+        axis.title.y = element_text(size = 14))
+
+## mean growth rates at different taxonomic levels ----
+labels_mean_rank <- as_labeller(c( mean_phylum = 'Phylum',
+                                   mean_class = 'Class',
+                                   mean_order = 'Order',
+                                   mean_family = 'Family',
+                                   mean_asv = 'ASV'))
+
+mean_gr_ranks <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(phylum_f) %>%
+  dplyr::filter(n() > 2) %>%
+  mutate(mean_phylum = mean(slope_chosen_days)) %>%
+  ungroup() %>%
+  group_by(class) %>%
+  mutate(mean_class = mean(slope_chosen_days)) %>%
+  ungroup() %>%
+  group_by(order) %>%
+  mutate(mean_order = mean(slope_chosen_days)) %>%
+  ungroup() %>%
+  group_by(family) %>%
+  mutate(mean_family = mean(slope_chosen_days)) %>%
+  ungroup() %>%
+  group_by(asv_num) %>%
+  mutate(mean_asv = mean(slope_chosen_days)) %>%
+  dplyr::select(starts_with('mean'), 'phylum_f', 'class', 'order', 'family', 'asv_num') %>%
+  pivot_longer(cols = starts_with('mean')) %>%
+  group_by(phylum_f) %>%
+  distinct(value, name, phylum_f) %>%
+  ggplot(aes(fct_rev(as_factor(name)), value))+
+  geom_point(aes(color = phylum_f), alpha = 0.9, position = position_jitter(0.3))+
+  geom_violin(alpha = 0.2, draw_quantiles = c(0.25, 0.75))+
+  scale_color_manual(values = palette_phylums_assigned)+
+  labs(y = 'Mean growth rate at different\ntaxonomic ranks', x= 'Taxonomic rank', color = 'Phylum')+
+  scale_x_discrete(labels = labels_mean_rank)+
+  coord_flip()+
+  theme_bw()+
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.position = 'none', axis.text.y = element_text(size = 12),
+        axis.title.y = element_text(size = 14))
+
+## Figure 3 creating panel design------
+distribution_gr_plots_ridge <- multi_panel_figure(columns = 7, rows = 3, width = 410, height = 297, 
+                                                  column_spacing = 0.1, unit = 'mm',
+                                                  panel_label_type = 'none')
+
+distribution_gr_plots_ridge  %<>%
+  fill_panel(perc_gr_phylum, column = 1, row = 1) %<>%
+  fill_panel(gr_tax_ranks_perc, column = 1, row = 2) %<>%
+  fill_panel(mean_gr_ranks, column = 1, row = 3) %<>%
+  fill_panel(ridge_ph, column = 2:3, row = 1:3) %<>%
+  fill_panel(ridge_cl, column = 4, row = 1:3) %<>%
+  fill_panel(ridge_o, column = 5, row = 1:3) %<>%
+  fill_panel(ridge_f, column = 6, row = 1:3) %<>%
+  fill_panel(ridge_a, column = 7, row = 1:3)
+
+## save the graph 
+# ggsave('distribution_gr_plots_ridge_order_freq_perc_ed2.pdf', distribution_gr_plots_ridge,
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 470,
+#        height = 397,
+#        units = 'mm')
+
+
+
+
+## Distribution plots separated by families (figure S3) ----
+
+counts_divided <-   reg_all_slopes_chosen_silva_tax %>%
+  group_by(order_f) %>%
+  dplyr::filter(n() >= 10) %>%
+  group_by(phylum_f, treatment) %>%
+  mutate(counts = n()) %>%
+  as_tibble() %>%
+  group_by(phylum_f, counts, treatment) %>%
+  dplyr::summarize() %>%
+  as_tibble()
+
+#write.table(counts_divided, 'results/tables/counts_divided_asv_num_corrected.txt', sep = '\t')
+
+reg_all_slopes_chosen_silva_tax_asv_reorder$phylum_f <- reg_all_slopes_chosen_silva_tax_asv_reorder$phylum_f %>%
+  factor( levels = c("Bacteroidota", "Proteobacteria", "Actinobacteriota",   "Cyanobacteria", "Planctomycetota",
+                     "Verrucomicrobiota",  "Firmicutes", "Crenarchaeota", "Campilobacterota", "Bdellovibrionota",
+                     "Acidobacteriota",
+                     "Nitrospinota",  "Nitrospirota",  "Myxococcota", "Desulfobacterota",
+                     "Deinococcota" , "Chloroflexi" , "Fusobacteriota", 
+                     "Spirochaetota",  "Abditibacteriota", "Latescibacterota",
+                     "Methylomirabilota", "Halanaerobiaeota", "Sumerlaeota", "Calditrichota", "Gemmatimonadota"), 
+          ordered = TRUE)
+
+ridge_family_divided <- reg_all_slopes_chosen_silva_tax_asv_reorder %>%
+  group_by(family_f) %>%
+  dplyr::filter(n() >= 8) %>%
+  ggplot(aes(y = fct_rev(phylum_f), x = slope_chosen_days, label = counts))+
+  geom_density_ridges(aes(fill = phylum_f, group = family_f), scale = 1.0, alpha = 0.6,
+                      jittered_points = TRUE,
+                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
+                      quantile_lines = TRUE,
+                      quantile_fun = mean)+
+  scale_fill_manual(values = palette_phylums_assigned)+
+  labs(y = '', fill= 'Phylum', x =expression("Growth rate day"^"-1"), title = 'Family')+
+  scale_x_continuous(limits = c(0,11))+
+  geom_text(nudge_x = 7.2, nudge_y = 0.35, check_overlap = TRUE, size = 3)+
+  facet_grid(cols = vars(treatment), scales = 'free')+
+  coord_cartesian(clip = "off") +
+  theme_bw()+
+  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
+        plot.margin= unit(c(1, 1, 0.2, 0.2), "lines"), panel.border = element_blank())
+
+# ggsave('distribution_gr_plots_ridge_family_treatment_divided.pdf', ridge_family_divided,
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 180,
+#        height = 150,
+#        units = 'mm')
+
+
+
+
+## Distribution plots for Proteobacteria and Bacteroidota separated (figure 4 and S4) ----
+ridge_proteo <- 
+  growthrates.distribution.tax.rank.ridges.divided(
+    data = reg_all_slopes_chosen_silva_tax_asv_reorder, 
+    phylum_to_explore = 'Proteobacteria',
+    title = 'Proteobacteria class',
+    axis_y_title = '',
+    x_c = 10,
+    x_o = 10,
+    x_f = 10,
+    x_a = 8) %>%
+  as_ggplot()
+
+# ggsave('ridge_proteobacteria_filtered_v4.pdf', ridge_proteo, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 180,
+#        height = 180,
+#        units = 'mm')
+
+ridge_bacterio <- growthrates.distribution.tax.rank.ridges.divided(
+  data = reg_all_slopes_chosen_silva_tax, 
+  phylum_to_explore = 'Bacteroidota',
+  title = 'Bacteroidota \n
+  Class',
+  axis_y_title = '',
+  x_c = 4,
+  x_o = 10,
+  x_f = 10,
+  x_a = 8) %>%
+  as_ggplot()
+
+# ggsave('ridge_bacteroidota_filtered_v3.pdf', ridge_bacterio, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 180,
+#        height = 180,
+#        units = 'mm')
+
+
+
+## Distributions for the whole growth rates calculated (figure 8) ----
+
+counts_treatments <-   reg_all_slopes_chosen_silva_tax %>%
+  group_by(domain) %>%
+  dplyr::filter(n() >= 2) %>%
+  group_by(treatment) %>%
+  mutate(counts = n()) %>%
+  as_tibble() %>%
+  group_by(treatment, counts) %>%
+  dplyr::summarize() %>%
+  as_tibble()
+
+#write.csv2(counts_treatments, 'results/tables/counts_treatments.csv')
+
+counts_season <-   reg_all_slopes_chosen_silva_tax %>%
+  group_by(domain) %>%
+  dplyr::filter(n() >= 2) %>%
+  group_by(season) %>%
+  mutate(counts = n()) %>%
+  as_tibble() %>%
+  group_by(season, counts) %>%
+  dplyr::summarize() %>%
+  as_tibble()
+
+#write.csv2(counts_season, 'results/tables/counts_season.csv')
+
+distribution_gr_domains <-
+  reg_all_slopes_chosen_silva_tax %>%
+  group_by(domain) %>%
+  dplyr::filter(n() >= 2) %>%
+  mutate(counts = paste('n = ', n())) %>% #
+  ggplot(aes(y = domain, x = slope_chosen_days, label = counts))+
+  geom_density_ridges(alpha = 0.8, panel_scaling = TRUE, scale = 3,
+                      jittered_points = TRUE,
+                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
+                      quantile_lines = TRUE,
+                      quantile_fun = mean)+
+  scale_x_continuous(limits = c(0,11))+
+  coord_cartesian(clip = "off") +
+  guides(color=guide_legend(ncol = 2, size = 5))+
+  geom_text(nudge_x = 8, nudge_y = 0.3, check_overlap = TRUE, size = 1)+
+  facet_grid(rows = vars(domain), scales = 'free', margins = NULL)+
+  labs(y = '', x = expression("Growth rate day"^"-1"), fill = 'Treatment')+
+  theme_bw()+
+  theme(legend.position = "bottom", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 7),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 7),
+        plot.margin= unit(c(1, 1, 0.2, 0.2), "lines"), panel.border = element_blank(), legend.text = element_text(size = 5),
+        legend.title = element_text(size = 7), strip.background.y = element_blank(), strip.text.y = element_blank())
+
+# ggsave('distribution_gr_domains.pdf', distribution_gr_domains, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 88,
+#        height = 88,
+#        units = 'mm')
+
+
+# ----- 7. GROWTH RATE TREATMENT RESPONSE ----------------
+
+## labels----
+effects_labels2 <-  as_labeller(c(effect_top_down_virus = 'Top-down effect viruses (VL-DL)',
+                                  effect_top_down_grazers_dark = 'Top-down effect grazers dark (PD-CD)',
+                                  effect_top_down_grazers_light = 'Top-down effect grazers light (PL-CL)',
+                                  effect_bottom_up = 'Bottom-up effect (DL-PL)',
+                                  effect_light_C = 'Light effect (CL-CD)',
+                                  effect_light_P = 'Light effect (PL-PD)'))
+
+
+## palette color and size by difference in growth rates----
+palete_gradient <- c("#5e0000",
+                     "#b24d5d",
+                     '#FFFFFF',
+                     "#4db2a2",
+                     "#005a47") 
+
+
+## Difference between growth rates at different treatments at ASV taxonomic rank (figure 5) -------
+effects_difference_asv <- reg_all_slopes_chosen_silva_tax %>% 
+  distinct(treatment, season, asv_num, domain, phylum, class, order, genus, species, tax_ed, asv_num, family, .keep_all = TRUE) %>%
+  group_by(treatment, season, domain, phylum, class, order, family, asv_num) %>%
+  dplyr::summarise(slope_chosen_days_mean = mean(slope_chosen_days),
+                   slope_chosen_mean = mean(slope_chosen),
+                   slope_chosen_days_sd = sd(slope_chosen_days),
+                   na.rm = TRUE) %>%
+  pivot_wider(names_from = treatment, values_from = c(slope_chosen_days_mean, slope_chosen_days_sd), 
+              id_cols = c(season, domain, phylum, class, order, family, asv_num)) %>%
+  distinct() %>%
+  as_tibble() %>%
+  mutate(across(!c(domain, phylum, class, order, family, asv_num, season), as.numeric)) %>%
+  mutate(effect_top_down_virus = slope_chosen_days_mean_VL - slope_chosen_days_mean_DL,
+         effect_top_down_grazers_dark = slope_chosen_days_mean_PD - slope_chosen_days_mean_CD,
+         effect_top_down_grazers_light = slope_chosen_days_mean_PL - slope_chosen_days_mean_CL,
+         effect_bottom_up = slope_chosen_days_mean_DL - slope_chosen_days_mean_PL,
+         effect_light_C = slope_chosen_days_mean_CL - slope_chosen_days_mean_CD,
+         effect_light_P = slope_chosen_days_mean_PL - slope_chosen_days_mean_PD)
+
+##table with mean and sd 
+# asv_bubble_plot <- effects_difference_asv_l %>%
+#   dplyr::filter(difference != is.na(difference)) %>%
+#   group_by(asv_num) %>%
+#   dplyr::filter(n() > 10) %$%
+#   asv_num %>%
+#   unique()
+# 
+# effects_difference_asv_table <- effects_difference_asv %>%
+#   dplyr::filter(asv_num %in% asv_bubble_plot) %>%
+#   select(season, phylum, class, order, asv_num, family, matches('mean')) %>% 
+#   rename( 'Mean growth rate CD' = slope_chosen_days_mean_CD,
+#           'Mean growth rate CL' = slope_chosen_days_mean_CL,
+#           'Mean growth rate PL' = slope_chosen_days_mean_PL,
+#           'Mean growth rate PD'= slope_chosen_days_mean_PD,
+#           'Mean growth rate DL' = slope_chosen_days_mean_DL,
+#           'Mean growth rate VL'= slope_chosen_days_mean_VL)
+# 
+# write.csv(effects_difference_asv_table, 'results/tables/mean_sd_gr_treatment_asv.csv')
+
+#Bubble plot ASV level
+effects_difference_asv_l <- effects_difference_asv %>%
+  pivot_longer(cols = starts_with('effect'),
+               names_to = 'effects',
+               values_to = 'difference') %>%
+  as_tibble()
+
+effects_difference_asv_l %>%
+  colnames()
+
+effects_difference_asv_l$season <-effects_difference_asv_l$season %>% 
+  factor(levels=(c("Winter", "Spring", "Summer", "Fall")))
+
+effects_difference_asv_l$effects <- effects_difference_asv_l$effects %>% 
+  factor(levels=(c("effect_bottom_up", "effect_top_down_grazers_dark", 
+                   "effect_top_down_grazers_light", "effect_top_down_virus",
+                   "effect_light_C", "effect_light_P")))
+
+effects_difference_asv_l <- effects_difference_asv_l %>%
+  mutate(phylum_f = as_factor(phylum),
+         family_f = as_factor(family),
+         order_f = as_factor(order),
+         class_f = as_factor(class),
+         asv_num_f = as_factor(asv_num))
+
+effects_difference_asv_l$class_f <-  factor(effects_difference_asv_l$class_f, 
+                                            levels=unique(effects_difference_asv_l$class_f[order(effects_difference_asv_l$phylum_f)]), 
+                                            ordered=TRUE)
+
+effects_difference_asv_l$order_f <-  factor(effects_difference_asv_l$order_f, 
+                                            levels=unique(effects_difference_asv_l$order_f[order(effects_difference_asv_l$phylum_f,
+                                                                                                 effects_difference_asv_l$class_f)]), 
+                                            ordered=TRUE)
+
+effects_difference_asv_l$family_f <-  factor(effects_difference_asv_l$family_f, 
+                                             levels=unique(effects_difference_asv_l$family_f[order(effects_difference_asv_l$phylum_f,
+                                                                                                   effects_difference_asv_l$class_f,
+                                                                                                   effects_difference_asv_l$order_f)]), 
+                                             ordered=TRUE)
+
+
+effects_difference_asv_l$asv_num_f <-  factor(effects_difference_asv_l$asv_num_f, 
+                                              levels=unique(effects_difference_asv_l$asv_num_f[order(effects_difference_asv_l$phylum_f,
+                                                                                                     effects_difference_asv_l$class_f,
+                                                                                                     effects_difference_asv_l$order_f,
+                                                                                                     effects_difference_asv_l$family_f)]), 
+                                              ordered=TRUE)
+
+difference_gr_treatments_asv <- 
+  effects_difference_asv_l %>%
+  dplyr::filter(difference != is.na(difference)) %>%
+  group_by(asv_num) %>%
+  dplyr::filter(n() > 10) %>%
+  group_by(asv_num, difference) %>%
+  mutate(counts = n(),
+         family_asv_num = paste(family,'',asv_num)) %>%
+  ggplot(aes(season, effects, color = difference))+
+  geom_point(aes(color = difference, size = difference))+
+  scale_y_discrete(labels = effects_labels2)+
+  scale_size(range = c(0, 10), name ="Growth rate difference\n between treatments")+
+  scale_colour_gradientn(colours = palete_gradient)+
+  facet_wrap(vars(family_asv_num))+
+  labs(y = 'Treatments growth rates differences', x = 'Season', color = '')+
+  theme_bw()+
+  theme(legend.position = 'right', panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 60, size = 5, hjust = 1), 
+        axis.text.y = element_text(size = 5), legend.title = element_text(size = 5), axis.title = element_text(size = 7),
+        strip.text = element_text(size = 5), strip.background = element_blank(), legend.text = element_text(size = 5))
+
+# ggsave('difference_gr_treatments_asv_num.pdf', difference_gr_treatments_asv, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 180,
+#        height = 150,
+#        units = 'mm')
+
+
+
+## Difference between growth rates at different treatments at family taxonomic rank (figure S6) ----
+effects_difference_family <- reg_all_slopes_chosen_silva_tax %>% 
+  distinct(treatment, season, asv_num, domain, phylum, class, order, genus, species, tax_ed, asv_num, family, .keep_all = TRUE) %>%
+  group_by(treatment, season, domain, phylum, class, order, family) %>%
+  dplyr::summarise(slope_chosen_days_mean = mean(slope_chosen_days),
+                   slope_chosen_mean = mean(slope_chosen),
+                   slope_chosen_days_sd = sd(slope_chosen_days),
+                   na.rm = TRUE) %>%
+  pivot_wider(names_from = treatment, values_from = c(slope_chosen_days_mean, slope_chosen_days_sd), 
+              id_cols = c(season, domain, phylum, class, order, family)) %>%
+  distinct() %>%
+  as_tibble() %>%
+  mutate(across(!c(domain, phylum, class, order, family, season), as.numeric)) %>%
+  mutate(effect_top_down_virus = slope_chosen_days_mean_VL - slope_chosen_days_mean_DL,
+         effect_top_down_grazers_dark = slope_chosen_days_mean_PD - slope_chosen_days_mean_CD,
+         effect_top_down_grazers_light = slope_chosen_days_mean_PL - slope_chosen_days_mean_CL,
+         effect_bottom_up = slope_chosen_days_mean_DL - slope_chosen_days_mean_PL,
+         effect_light_C = slope_chosen_days_mean_CL - slope_chosen_days_mean_CD,
+         effect_light_P = slope_chosen_days_mean_PL - slope_chosen_days_mean_PD)
+
+# difference_gr_treatments_family <- effects_difference_family_l %>%
+#   filter(difference != is.na(difference)) %>%
+#   group_by(class) %>%
+#   filter(n() > 10) %>%
+#   group_by(family) %>%
+#   filter(n() > 20) %>%
+#   group_by(family, difference) %>%
+#   mutate(counts = n()) %>%
+#   ungroup() %>%
+#   filter(difference > 0) %>%
+#   ggplot(aes(season, effects, size = difference, color = phylum_f, alpha = counts))+
+#   geom_point()+
+#   scale_y_discrete(labels = effects_labels2)+
+#   scale_size(range = c(0, 6), name="Growth rate difference\n between treatments")+
+#   scale_color_manual(values = palette_phylums)+
+#   scale_alpha(range = c(1,1), limits = c(0.1, 1))+
+#   facet_wrap(vars(family_f))+ #, labeller = interaction(vars(class_f), vars(family_f), sep = ' ')
+#   labs(y = 'Treatments growth rates differences', x = 'Season', color = 'Phylum')+
+#   theme_bw()+
+#   theme(legend.position = 'right', panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#         axis.text.x = element_text(angle = 90), strip.text = element_text(size = 5), strip.background = element_blank())
+# 
+# ggsave('difference_gr_treatments_family3.pdf', difference_gr_treatments_family, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 240,
+#        height = 180,
+#        units = 'mm')
+
+effects_difference_family_l <- effects_difference_family %>%
+  pivot_longer(cols = starts_with('effect'),
+               names_to = 'effects',
+               values_to = 'difference') %>%
+  as_tibble()
+
+effects_difference_family_l$season <-effects_difference_family_l$season %>% 
+  factor(levels=(c("Winter", "Spring", "Summer", "Fall")))
+
+effects_difference_family_l$effects <- effects_difference_family_l$effects %>% 
+  factor(levels=(c("effect_bottom_up", "effect_top_down_grazers_dark", 
+                   "effect_top_down_grazers_light", "effect_top_down_virus",
+                   "effect_light_C", "effect_light_P")))
+
+effects_difference_family_l <- effects_difference_family_l %>%
+  mutate(phylum_f = as_factor(phylum),
+         family_f = as_factor(family),
+         order_f = as_factor(order),
+         class_f = as_factor(class))
+
+effects_difference_family_l$class_f <-  factor(effects_difference_family_l$class_f, 
+                                               levels=unique(effects_difference_family_l$class_f[order(effects_difference_family_l$phylum_f)]), 
+                                               ordered=TRUE)
+
+effects_difference_family_l$order_f <-  factor(effects_difference_family_l$order_f, 
+                                               levels=unique(effects_difference_family_l$order_f[order(effects_difference_family_l$phylum_f,
+                                                                                                       effects_difference_family_l$class_f)]), 
+                                               ordered=TRUE)
+
+effects_difference_family_l$family_f <-  factor(effects_difference_family_l$family_f, 
+                                                levels=unique(effects_difference_family_l$family_f[order(effects_difference_family_l$phylum_f,
+                                                                                                         effects_difference_family_l$class_f,
+                                                                                                         effects_difference_family_l$order_f)]), 
+                                                ordered=TRUE)
+
+difference_gr_treatments_family <- 
+  effects_difference_family_l %>%
+  dplyr::filter(difference != is.na(difference)) %>%
+  group_by(family) %>%
+  dplyr::filter(n() > 10) %>%
+  group_by(family, difference) %>%
+  mutate(counts = n()) %>%
+  ggplot(aes(season, effects, color = difference))+
+  geom_point(aes(color = difference, size = difference))+
+  scale_y_discrete(labels = effects_labels2)+
+  scale_size(range = c(0, 10), name ="Growth rate difference\n between treatments")+
+  scale_colour_gradientn(colours = palete_gradient)+
+  facet_wrap(vars(family_f))+
+  labs(y = 'Treatments growth rates differences', x = 'Season', color = '')+
+  theme_bw()+
+  theme(legend.position = 'right', panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 60, size = 5, hjust = 1), 
+        axis.text.y = element_text(size = 5), legend.title = element_text(size = 7), axis.title = element_text(size = 7),
+        strip.text = element_text(size = 7), strip.background = element_blank(), legend.text = element_text(size = 5))
+
+# ggsave('difference_gr_treatments_family4.pdf', difference_gr_treatments_family, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 180,
+#        height = 150,
+#        units = 'mm')
+
+
+## Difference between growth rates at different treatments at order taxonomic rank (figure S7) -----
+effects_difference_order <- reg_all_slopes_chosen_silva_tax %>% 
+  distinct(treatment, season, asv_num, domain, phylum, class, order, genus, species, tax_ed, asv_num, family, .keep_all = TRUE) %>%
+  group_by(treatment, season, domain, phylum, class, order) %>%
+  dplyr::summarise(slope_chosen_days_mean = mean(slope_chosen_days),
+                   slope_chosen_sd = sd(slope_chosen),
+                   na.rm = TRUE) %>%
+  pivot_wider(names_from = treatment, values_from = c(slope_chosen_days_mean, slope_chosen_sd),
+              id_cols = c(season, domain, phylum, class, order)) %>%
+  distinct() %>%
+  as_tibble() %>%
+  mutate(across(!c(domain, phylum, class, order, season), as.numeric)) %>%
+  mutate(effect_top_down_virus = slope_chosen_days_mean_VL - slope_chosen_days_mean_DL,
+         effect_top_down_grazers_dark = slope_chosen_days_mean_PD - slope_chosen_days_mean_CD,
+         effect_top_down_grazers_light = slope_chosen_days_mean_PL - slope_chosen_days_mean_CL,
+         effect_bottom_up = slope_chosen_days_mean_DL - slope_chosen_days_mean_PL,
+         effect_light_C = slope_chosen_days_mean_CL - slope_chosen_days_mean_CD,
+         effect_light_P = slope_chosen_days_mean_PL - slope_chosen_days_mean_PD)
+
+# effects_difference_order_table <- effects_difference_order %>%
+#   select(season, phylum, class, order, matches('mean'), matches('sd')) %>%
+#   filter(slope_chosen_days_mean_CD != is.na(slope_chosen_days_mean_CD) &
+#            slope_chosen_days_mean_CL != is.na(slope_chosen_days_mean_CL) &
+#            slope_chosen_days_mean_PD != is.na(slope_chosen_days_mean_PD) &
+#            slope_chosen_days_mean_PL != is.na(slope_chosen_days_mean_PL) &
+#            slope_chosen_days_mean_DL != is.na(slope_chosen_days_mean_DL) &
+#            slope_chosen_days_mean_VL != is.na(slope_chosen_days_mean_VL)) %>%
+#   arrange(order)
+# effects_difference_order_table %>%
+#   colnames()
+# 
+# 
+# effects_difference_order_table <- effects_difference_order_table %>%
+#   rename( 'Mean growth rate CD' = slope_chosen_days_mean_CD,
+#          'Mean growth rate CL' = slope_chosen_days_mean_CL,
+#          'Mean growth rate PL' = slope_chosen_days_mean_PL,
+#          'Mean growth rate PD'= slope_chosen_days_mean_PD,
+#          'Mean growth rate DL' = slope_chosen_days_mean_DL,
+#          'Mean growth rate VL'= slope_chosen_days_mean_VL,
+#          'sd growth rate CD' = slope_chosen_sd_CD,
+#          'sd growth rate CL' = slope_chosen_sd_CL,
+#          'sd growth rate PL' = slope_chosen_sd_PL,
+#          'sd growth rate PD' = slope_chosen_sd_PD,
+#          'sd growth rate DL' = slope_chosen_sd_DL,
+#          'sd growth rate VL' = slope_chosen_sd_VL)
+# write.table(effects_difference_order_table, 'results/tables/mean_sd_gr_treatment_order.txt', sep = '\t')
+
+effects_difference_order_l <- effects_difference_order %>%
+  pivot_longer(cols = starts_with('effect'),
+               names_to = 'effects',
+               values_to = 'difference') %>%
+  as_tibble()
+
+effects_difference_order_l$season <-effects_difference_order_l$season %>% 
+  factor(levels=(c("Winter", "Spring", "Summer", "Fall")))
+
+effects_difference_order_l$effects <- effects_difference_order_l$effects %>% 
+  factor(levels=(c("effect_bottom_up", "effect_top_down_grazers_dark", 
+                   "effect_top_down_grazers_light", "effect_top_down_virus",
+                   "effect_light_C", "effect_light_P")))
+
+effects_difference_order_l <- effects_difference_order_l %>%
+  mutate(phylum_f = as_factor(phylum),
+         order_f = as_factor(order),
+         class_f = as_factor(class))
+
+effects_difference_order_l$class_f <-  factor(effects_difference_order_l$class_f, 
+                                              levels=unique(effects_difference_order_l$class_f[order(effects_difference_order_l$phylum_f)]), 
+                                              ordered=TRUE)
+
+effects_difference_order_l$order_f <-  factor(effects_difference_order_l$order_f, 
+                                              levels=unique(effects_difference_order_l$order_f[order(effects_difference_order_l$phylum_f,
+                                                                                                     effects_difference_order_l$class_f)]), 
+                                              ordered=TRUE)
+
+difference_gr_treatments_order <- 
+  effects_difference_order_l %>%
+  dplyr::filter(difference != is.na(difference)) %>%
+  group_by(order) %>%
+  dplyr::filter(n() > 12) %>%
+  group_by(order, difference) %>%
+  mutate(counts = n()) %>%
+  ungroup() %>%
+  ggplot(aes(season, effects, color = difference))+ 
+  geom_point(aes(color = difference, size = difference))+
+  scale_y_discrete(labels = effects_labels2)+
+  scale_size(range = c(0, 10), name ="Growth rate difference\n between treatments")+
+  scale_colour_gradientn(colours = palete_gradient)+
+  facet_wrap(vars(order_f))+
+  labs(y = 'Treatments growth rates differences', x = 'Season', color = '')+
+  theme_bw()+
+  theme(legend.position = 'right', panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 60, size = 5, hjust = 1), 
+        axis.text.y = element_text(size = 5), legend.title = element_text(size = 7), axis.title = element_text(size = 7),
+        strip.text = element_text(size = 7), strip.background = element_blank(), legend.text = element_text(size = 5))
+
+# ggsave('difference_gr_treatments_order5.pdf', difference_gr_treatments_order, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 180,
+#        height = 150,
+#        units = 'mm')
+
+
+
+
+
+# ----- 8. ANALYSIS OF RESPONSIVE ASVs IN THE DIFFERENT TREATMENTS AND SEASONS ----------------
+
+##palette ----
+palete_gradient <- c(
+  "#e6e6e6",
+  "#003318") 
+
+## Richness at the natural insitu community (Figure 6A) ----
+miau_asv_tab <- read_rds('../MIAU_seqs/MIAU_runs_seqtab_final.rds')  %>%
+  as_tibble(rownames = 'sample_code')
+
+tax_silva_miau <- readRDS("../MIAU_seqs/MIAUruns_assignTax_tax_assignation.rds") %>% 
+  as_tibble(rownames = 'sequence')
+
+miau_asv_tab_insitu <- miau_asv_tab %>%
+  filter(sample_code %in% c("x254", "x255", "x256", "x257")) %>%
+  mutate(season = case_when(sample_code == 'x254' ~ 'Winter',
+                            sample_code == 'x255' ~ 'Spring',
+                            sample_code == 'x256' ~ 'Summer',
+                            sample_code == 'x257' ~ 'Fall')) %>%
+  dplyr::select(-sample_code)
+
+miau_asv_tab_insitu_season <- miau_asv_tab_insitu$season
+
+miau_asv_tab_insitu_filt <- miau_asv_tab_insitu %>%
+  dplyr::select(-season) %>%
+  dplyr::select(where(~ sum(.) != 0)) %>%
+  cbind(miau_asv_tab_insitu_season)
+
+miau_seqs <- miau_asv_tab_insitu_filt %>%
+  t() %>%
+  as.data.frame() %>%
+  rownames_to_column(var = 'ASV_seq') %>%
+  row_to_names(row_number = 3874, remove_row = T, remove_rows_above = F)
+
+miau_seqs %>%
+  colnames()
+
+tax_silva_miau_filt <- tax_silva_miau %>% 
+  dplyr::filter(!is.na('Kingdom'), !is.na('Phylum')) %>% #filter all results without domain assignation 
+  dplyr::filter(Order !=  'Chloroplast') %>%  #And the Chloros/Mitochondria seqs
+  dplyr::filter(Family !=  'Mitochondria') 
+
+#filter miau ASV tab by only the one's that are not unclassified or chloroplasts and mitochondria
+miau_seqs_filt  <- miau_seqs %>%
+  filter(miau_seqs$miau_asv_tab_insitu_season %in% tax_silva_miau_filt$sequence) #2548 ASV
+
+miau_seqs_filt_ed <- miau_seqs_filt %>%
+  mutate(across(!miau_asv_tab_insitu_season, as.numeric))
+
+miau_seqs_filt_ed_fasta <- miau_seqs_filt_ed %>%
+  mutate(names = str_c( 'asv' , 1:nrow(miau_seqs_filt_ed))) %>%
+  select(-miau_asv_tab_insitu_season)
+
+##calculate richness
+miau_asv_tab_insitu_filt <- miau_seqs_filt_ed_fasta %>%
+  transmute(across(!'names', as.numeric)) 
+
+miau_asv_tab_insitu_filt_ed <- otu_table(miau_asv_tab_insitu_filt, taxa_are_rows = T)
+
+richness <- miau_asv_tab_insitu_filt_ed  %>%
+  estimate_richness() %>%
+  cbind(miau_asv_tab_insitu_season) %>%
+  rownames_to_column(var = 'season')
+
+## Insitu richness plot----
+richness$miau_asv_tab_insitu_season <- factor(richness$miau_asv_tab_insitu_season, levels = c('Winter', 'Spring', 'Summer',  'Fall'))
+insitu_richness <- 
+  richness %>%
+  ggplot(aes(miau_asv_tab_insitu_season, Observed))+
+  geom_col(aes(fill = miau_asv_tab_insitu_season), alpha = 0.9)+#
+  scale_fill_manual(values = palette_seasons_4)+
+  #geom_text(aes(label = (treatment), y = (1000)))+
+  coord_polar()+
+  labs(x = '', y = '')+#, title = 'T0'
+  annotate('text', x = 0, y = c(750 ,1000, 1300), label = c('750', '1000', '1300')) +
+  #annotate('segment', x = 0, xend = 0, y = 0, yend =5.5)+
+  scale_y_continuous(limits = c(0, 1350), breaks = c(750, 1000, 1300))+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 5),
+        plot.margin = margin(0,2,0,0, unit = 'cm' ))
+
+
+
+## Total responsive ASVs GR>1(day-1) (figure 6B) ----
+total_responsive_asvs <- reg_all_slopes_chosen_silva_tax %>%
+  filter(slope_chosen_days > 1) %>%
+  dplyr::select(treatment, season, asv_num) %>% 
+  mutate(seas_treat = paste(treatment, season)) %>%
+  group_by(seas_treat, asv_num) %>% 
+  distinct(seas_treat, asv_num) %>%
+  group_by(seas_treat) %>%
+  dplyr::summarize(num_responsive_asv = n()) %>%
+  as_tibble()
+
+## Relative responsive ASVs (gr > 1) from total growing ASVs (gr > 0):
+total_growing_asvs <- reg_all_slopes_chosen_silva_tax %>%
+  filter(slope_chosen_days > 0 &
+           pvalue_slope_chosen < 0.05) %>%
+  dplyr::select(treatment, season, asv_num) %>% #, slope_chosen_days, family_f
+  #filter(treatment %in% c('CD', 'CL', 'PD', 'PL')) %>%
+  #dplyr::select(-slope_chosen_days, -family_f) %>%
+  mutate(seas_treat = paste(treatment, season)) %>%
+  group_by(seas_treat, asv_num) %>% ##sembla que PD Winter está repetit al dataset original (trobar a on es duplica, té efecte aals gràfics?)
+  distinct(seas_treat, asv_num) %>%
+  group_by(seas_treat) %>%
+  dplyr::summarize(num_growing_asv = n()) %>%
+  #mutate(num_responding_asv = as.numeric(num_responding_asv)) %>%
+  as_tibble()
+
+total_responsive_asvs %>%
+  left_join(total_growing_asvs) %>%
+  mutate(relative_responsive_asvs = num_responsive_asv/num_growing_asv)
+
+## plot relative responsive ASVs per treatment-season ----
+total_responsive_asvs_plot_relative <- 
+  total_responsive_asvs %>%
+  left_join(total_growing_asvs) %>%
+  mutate(relative_responsive_asvs = num_responsive_asv/num_growing_asv) %>%
+  separate('seas_treat', sep = ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  as_tibble() %>%
+  mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+                                                "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+                                                "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+                                                "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall"))) %>%
+  ggplot(aes(seas_treat, relative_responsive_asvs, fill = Season))+
+  geom_col(alpha = 0.9)+
+  geom_text(aes(label = (Treatment), y = (1.1)))+
+  coord_polar()+
+  labs(x = '', y = '')+
+  scale_fill_manual(values = palette_seasons_4)+
+  annotate('text', x = 0, y = c(0.2, 0.4, 0.6, 0.8, 1), label = c('0.2', '0.4', '0.6', '0.8', '1')) +
+  scale_y_continuous(limits = c(0, 1.1))+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 5),
+        plot.margin = margin(0,2,0,0, unit = 'cm'))
+
+# ggsave(filename = 'total_responsive_asvs_plot_relative.pdf', plot = total_responsive_asvs_plot_relative, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 88, height = 88, units = 'mm')
+
+total_responsive_asvs <-  total_responsive_asvs %>%
+  separate('seas_treat', sep = ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  as_tibble() %>%
+  mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+                                                "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+                                                "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+                                                "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall")))
+total_responsive_asvs %$%
+  num_responsive_asv %>%
+  range()
+
+## plot absolute number of responsive ASVs ----
+total_responsive_asvs_plot_absolut <- 
+  total_responsive_asvs %>%
+  ggplot(aes(seas_treat, num_responsive_asv, fill = Season))+
+  geom_col()+
+  geom_text(aes(label = (Treatment), y = (300)))+
+  coord_polar()+
+  labs(x = '', y = '')+
+  scale_fill_manual(values = palette_seasons_4)+
+  annotate('text', x = 0, y = c(100, 200, 300), label = c('100', '200', '300')) +
+  scale_y_continuous(limits = c(0, 300))+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 5),
+        plot.margin = margin(0,0,0,0))
+
+# ggsave(filename = 'total_responsive_asvs_plot_absolut.pdf', plot = total_responsive_asvs_plot_absolut, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 88, height = 88, units = 'mm')
+
+
+## Number of exclusive ASVs growing GR>1(day-1) per sample----------------
+data_for_exclusive_asvs <- reg_all_slopes_chosen_silva_tax %>%
+  filter(slope_chosen_days > 1) %>%
+  dplyr::select(treatment, season, asv_num) %>% 
+  mutate(seas_treat = paste(treatment, season)) %>%
+  group_by(seas_treat, asv_num) %>% 
+  distinct(seas_treat, asv_num) 
+
+total_responding_asvs_sample  <-  data_for_exclusive_asvs %>%
+  group_by(seas_treat) %>%
+  dplyr::summarize(num_responding_asv = n()) %>%
+  mutate(num_responding_asv = as.numeric(num_responding_asv)) %>%
+  as_tibble()
+
+excl_cd_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Winter')
+excl_cd_sp <-   exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Spring')
+excl_cd_su <-   exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Summer')
+excl_cd_f <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Fall')
+excl_cl_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Winter')
+excl_cl_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Spring')
+excl_cl_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Summer')
+excl_cl_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Fall')
+excl_PD_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Winter')
+excl_PD_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Spring')
+excl_PD_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Summer')
+excl_PD_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Fall')
+excl_PL_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Winter')
+excl_PL_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Spring')
+excl_PL_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Summer')
+excl_PL_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Fall')
+excl_DL_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Winter')
+excl_DL_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Spring')
+excl_DL_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Summer')
+excl_DL_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Fall')
+excl_VL_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Winter')
+excl_VL_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Spring')
+excl_VL_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Summer')
+excl_VL_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Fall')
+
+exclusive_asvs_dataset <-  bind_rows(excl_cd_w ,   excl_cd_sp ,   excl_cd_su ,   excl_cd_f ,   excl_cl_w , 
+                                     excl_cl_sp ,   excl_cl_su ,   excl_cl_f ,   excl_PD_w ,   excl_PD_sp ,
+                                     excl_PD_su ,   excl_PD_f ,   excl_PL_w,   excl_PL_sp ,   excl_PL_su,
+                                     excl_PL_f ,   excl_DL_w,   excl_DL_sp ,   excl_DL_su,   excl_DL_f , 
+                                     excl_VL_w ,   excl_VL_sp ,   excl_VL_su,   excl_VL_f) %>%
+  group_by(seas_treat) %>%
+  dplyr::summarize(number_exclusive_asvs = n()) %>%
+  separate(seas_treat, ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+                                                "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+                                                "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+                                                "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall")))
+exclusive_asvs_dataset %$%
+  number_exclusive_asvs %>%
+  range()
+
+## Relative exclusive ASVs plot (Fig. 6C) ----
+exclusive_asvs_relative <-  exclusive_asvs_dataset %>%
+  left_join(total_responding_asvs_sample, by = 'seas_treat') %>%
+  mutate(number_exclusive_asvs = as.numeric(number_exclusive_asvs)) %>%
+  as_tibble() %>%
+  mutate(relative_exclusive_asvs = number_exclusive_asvs/num_responding_asv) %>%
+  mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+                                                "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+                                                "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+                                                "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall")))
+
+exclusive_asvs_relative_plot <- exclusive_asvs_relative %>%
+  ggplot(aes(seas_treat, relative_exclusive_asvs, fill = Season))+
+  geom_col()+
+  geom_text(aes(label = (Treatment), y = (0.55)))+
+  coord_polar()+
+  labs(x = '', y = '')+
+  scale_fill_manual(values = palette_seasons_4)+
+  annotate('text', x = 0, y = c(0.2, 0.4), label = c('0.2', '0.4')) +
+  scale_y_continuous(limits = c(0, 0.55))+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 5),
+        plot.margin = margin(0,2,0,0, unit = 'cm'))
+
+# ggsave(filename = 'exclusive_asvs_relative_1gr.pdf', plot = exclusive_asvs_relative_plot, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 88, height = 88, units = 'mm')
+
+## Relative exclusive ASVs plot (Fig S8C) ----
+exclusive_asvs_absolut <- exclusive_asvs_dataset %>%
+  ggplot(aes(seas_treat, number_exclusive_asvs, fill = Season))+
+  geom_col()+
+  geom_text(aes(label = (Treatment), y = (110)))+
+  coord_polar()+
+  labs(x = '', y = '')+
+  scale_fill_manual(values = palette_seasons_4)+
+  annotate('text', x = 0, y = c(20, 40, 60, 80, 100), label = c('20', '40', '60', '80', '100')) +
+  scale_y_continuous(limits = c(0, 110))+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.major.x = element_blank())
+
+# ggsave(filename = 'exclusive_asvs_absolut_1gr.pdf', plot = exclusive_asvs_absolut, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 88, height = 88, units = 'mm')
+
+
+
+####Total responsive ASVs (GR > 1)
+
+total_responsive_asvs <- reg_all_slopes_chosen_silva_tax %>%
+  filter(slope_chosen_days > 1 &
+           pvalue_slope_chosen < 0.05) %>%
+  dplyr::select(treatment, season, asv_num) %>% #, slope_chosen_days, family_f
+  #filter(treatment %in% c('CD', 'CL', 'PD', 'PL')) %>%
+  #dplyr::select(-slope_chosen_days, -family_f) %>%
+  mutate(seas_treat = paste(treatment, season)) %>%
+  group_by(seas_treat, asv_num) %>% ##sembla que PD Winter está repetit al dataset original (trobar a on es duplica, té efecte aals gràfics?)
+  distinct(seas_treat, asv_num) %>%
+  group_by(seas_treat) %>%
+  dplyr::summarize(num_responsive_asv = n()) %>%
+  #mutate(num_responding_asv = as.numeric(num_responding_asv)) %>%
+  as_tibble()
+
+total_responsive_asvs <-  total_responsive_asvs %>%
+  #left_join(, by = 'seas_treat') %>%
+  separate('seas_treat', sep = ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  #mutate(number_exclusive_asvs = as.numeric(number_exclusive_asvs)) %>%
+  as_tibble() %>%
+  #mutate(relative_exclusive_asvs = number_exclusive_asvs/num_responding_asv) %>%
+  mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+                                                "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+                                                "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+                                                "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall")))
+total_responsive_asvs %$%
+  num_responsive_asv %>%
+  range()
+
+total_responsive_asvs_plot_absolut <- 
+  total_responsive_asvs %>%
+  ggplot(aes(seas_treat, num_responsive_asv, fill = Season))+
+  geom_col()+
+  geom_text(aes(label = (Treatment), y = (300)))+
+  coord_polar()+
+  labs(x = '', y = '')+
+  scale_fill_manual(values = palette_seasons_4)+
+  annotate('text', x = 0, y = c(100, 200, 300), label = c('100', '200', '300')) +
+  scale_y_continuous(limits = c(0, 300))+
+  theme_bw()+
+  theme(legend.position = 'none',
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(size = 5),
+        plot.margin = margin(0,0,0,0))
+
+# ggsave(filename = 'total_responsive_asvs_plot_absolut.pdf', plot = total_responsive_asvs_plot_absolut, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 88, height = 88, units = 'mm')
+
+
+## Responsive ASVs: GR>1(day-1) -------------
+data_for_common_asvs <- reg_all_slopes_chosen_silva_tax %>%
+  dplyr:: filter(slope_chosen_days > 1) %>%
+  dplyr::select(treatment, season, asv_num) %>% 
+  mutate(seas_treat = paste(treatment, season)) %>%
+  group_by(seas_treat, asv_num) %>% 
+  distinct(seas_treat, asv_num) 
+
+num_asv_seas_treat <- data_for_common_asvs %>%
+  group_by(seas_treat) %>%
+  dplyr::summarize(n = n()) %>%
+  as_tibble()
+## Calculating nº of common ASVs between treatments and seasons------
+##between treatments from the same season
+CD_CD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CD Spring')      
+CD_CD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CD Summer')      
+CD_CD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CD Fall')  
+CD_CD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CD Summer') 
+CD_CD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CD Fall') 
+CD_CD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'CD Fall') 
+
+CL_CL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CL Spring')      
+CL_CL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CL Summer')      
+CL_CL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CL Fall')  
+CL_CL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CL Summer') 
+CL_CL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CL Fall') 
+CL_CL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'CL Fall') 
+
+PL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PL Spring')      
+PL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PL Summer')      
+PL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PL Fall')  
+PL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PL Summer') 
+PL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PL Fall') 
+PL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'PL Fall') 
+
+PD_PD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PD Spring')      
+PD_PD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PD Summer')      
+PD_PD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PD Fall')  
+PD_PD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PD Summer') 
+PD_PD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PD Fall') 
+PD_PD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'PD Fall')
+
+DL_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'DL Spring')      
+DL_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'DL Summer')      
+DL_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'DL Fall')  
+DL_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'DL Summer') 
+DL_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'DL Fall') 
+DL_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'DL Fall')
+
+VL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'VL Spring')      
+VL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'VL Summer')      
+VL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'VL Fall')  
+VL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'VL Summer') 
+VL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'VL Fall') 
+VL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'VL Fall')
+
+##Between treatments
+###CD_CL
+CD_CL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Winter')      
+CD_CL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CL Spring')      
+CD_CL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'CL Summer')  
+CD_CL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Fall', sample2 = 'CL Fall') 
+CD_CL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Spring') 
+CD_CL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CD Spring') 
+CD_CL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Summer') 
+CD_CL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CD Summer') 
+CD_CL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Fall') 
+CD_CL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CD Fall') 
+CD_CL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CL Summer') 
+CD_CL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CD Summer') 
+CD_CL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CL Fall') 
+CD_CL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CD Fall') 
+CD_CL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'CL Fall') 
+CD_CL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'CD Fall') 
+
+##CD_PL
+CD_PD_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Winter')      
+CD_PD_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Spring')      
+CD_PD_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'CL Summer')  
+CD_PD_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'CL Fall') 
+CD_PD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Spring') 
+CD_PD_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Spring') 
+CD_PD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Summer') 
+CD_PD_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Summer') 
+CD_PD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Fall') 
+CD_PD_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Fall') 
+CD_PD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Summer') 
+CD_PD_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Summer') 
+CD_PD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Fall') 
+CD_PD_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Fall') 
+CD_PD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'CL Fall') 
+CD_PD_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PD Fall')
+
+##CD_PL
+CD_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Winter')      
+CD_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Spring')      
+CD_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Summer')  
+CD_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Fall', sample2 = 'CL Fall') 
+CD_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Spring') 
+CD_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Spring') 
+CD_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Summer') 
+CD_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Summer') 
+CD_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Fall') 
+CD_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Fall') 
+CD_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Summer') 
+CD_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Summer') 
+CD_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Fall') 
+CD_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Fall') 
+CD_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Fall') 
+CD_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Fall') 
+
+##CD_DL
+CD_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Winter')      
+CD_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'DL Spring')      
+CD_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'DL Summer')  
+CD_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Fall', sample2 = 'DL Fall') 
+CD_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Spring') 
+CD_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CD Spring') 
+CD_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Summer') 
+CD_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CD Summer') 
+CD_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Fall') 
+CD_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CD Fall') 
+CD_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'DL Summer') 
+CD_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CD Summer') 
+CD_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'DL Fall') 
+CD_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CD Fall') 
+CD_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'DL Fall') 
+CD_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'CD Fall') 
+
+##CD_VL (16)
+CD_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Winter')      
+CD_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'VL Spring')      
+CD_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'VL Summer')  
+CD_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Fall', sample2 = 'VL Fall') 
+CD_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Spring') 
+CD_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CD Spring') 
+CD_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Summer') 
+CD_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CD Summer') 
+CD_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Fall') 
+CD_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CD Fall') 
+CD_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'VL Summer') 
+CD_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CD Summer') 
+CD_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'VL Fall') 
+CD_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CD Fall') 
+CD_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'VL Fall') 
+CD_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'CD Fall') 
+
+##CL_PL (16)
+CL_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Winter')      
+CL_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Spring')      
+CL_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Summer')  
+CL_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'PL Fall') 
+CL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Spring') 
+CL_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Spring') 
+CL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Summer') 
+CL_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Summer') 
+CL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Fall') 
+CL_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Fall') 
+CL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Summer') 
+CL_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Summer') 
+CL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Fall') 
+CL_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Fall') 
+CL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Fall') 
+CL_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Fall') 
+
+##CL_PD (16)
+CL_PD_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Winter')      
+CL_PD_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Spring')      
+CL_PD_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PD Summer')  
+CL_PD_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'PD Fall') 
+CL_PD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Spring') 
+CL_PD_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Spring') 
+CL_PD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Summer') 
+CL_PD_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Summer') 
+CL_PD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Fall') 
+CL_PD_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Fall') 
+CL_PD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Summer') 
+CL_PD_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Summer') 
+CL_PD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Fall') 
+CL_PD_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Fall') 
+CL_PD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PD Fall') 
+CL_PD_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'CL Fall') 
+
+##CL_PL (16)
+CL_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Winter')      
+CL_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Spring')      
+CL_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Summer')  
+CL_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'PL Fall') 
+CL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Spring') 
+CL_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Spring') 
+CL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Summer') 
+CL_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Summer') 
+CL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Fall') 
+CL_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Fall') 
+CL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Summer') 
+CL_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Summer') 
+CL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Fall') 
+CL_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Fall') 
+CL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Fall') 
+CL_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Fall') 
+
+##CL_DL (16)
+CL_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Winter')      
+CL_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Spring')      
+CL_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Summer')  
+CL_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'DL Fall') 
+CL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Spring') 
+CL_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Spring') 
+CL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Summer') 
+CL_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Summer') 
+CL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Fall') 
+CL_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Fall') 
+CL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Summer') 
+CL_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Summer') 
+CL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Fall') 
+CL_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Fall') 
+CL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Fall') 
+CL_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'CL Fall') 
+
+##CL_DL (16)
+CL_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Winter')      
+CL_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Spring')      
+CL_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Summer')  
+CL_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'DL Fall') 
+CL_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Spring') 
+CL_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Spring') 
+CL_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Summer') 
+CL_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Summer') 
+CL_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Fall') 
+CL_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Fall') 
+CL_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Summer') 
+CL_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Summer') 
+CL_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Fall') 
+CL_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Fall') 
+CL_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Fall') 
+CL_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'CL Fall') 
+
+##CL_VL (16)
+CL_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Winter')      
+CL_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'VL Spring')      
+CL_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'VL Summer')  
+CL_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'VL Fall') 
+CL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Spring') 
+CL_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CL Spring') 
+CL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Summer') 
+CL_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CL Summer') 
+CL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Fall') 
+CL_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CL Fall') 
+CL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'VL Summer') 
+CL_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CL Summer') 
+CL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'VL Fall') 
+CL_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CL Fall') 
+CL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'VL Fall') 
+CL_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'CL Fall')
+
+##PD_PL (16)
+PD_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Winter')      
+PD_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PL Spring')      
+PD_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'PL Summer')  
+PD_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'PL Fall') 
+PD_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Spring') 
+PD_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PD Spring') 
+PD_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Summer') 
+PD_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PD Summer') 
+PD_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Fall') 
+PD_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PD Fall') 
+PD_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PL Summer') 
+PD_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PD Summer') 
+PD_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PL Fall') 
+PD_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PD Fall') 
+PD_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'PL Fall') 
+PD_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'PD Fall') 
+
+##PD_DL (16)
+PD_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Winter')      
+PD_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'DL Spring')      
+PD_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'DL Summer')  
+PD_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'DL Fall') 
+PD_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Spring') 
+PD_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PD Spring') 
+PD_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Summer') 
+PD_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PD Summer') 
+PD_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Fall') 
+PD_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PD Fall') 
+PD_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'DL Summer') 
+PD_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PD Summer') 
+PD_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'DL Fall') 
+PD_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PD Fall') 
+PD_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'DL Fall') 
+PD_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'PD Fall') 
+
+##PD_VL (16)
+PD_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Winter')      
+PD_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'VL Spring')      
+PD_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'VL Summer')  
+PD_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'VL Fall') 
+PD_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Spring') 
+PD_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PD Spring') 
+PD_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Summer') 
+PD_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PD Summer') 
+PD_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Fall') 
+PD_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PD Fall') 
+PD_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'VL Summer') 
+PD_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PD Summer') 
+PD_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'VL Fall') 
+PD_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PD Fall') 
+PD_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'VL Fall') 
+PD_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'PD Fall') 
+
+##PL_DL (16)
+PL_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Winter')      
+PL_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'DL Spring')      
+PL_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'DL Summer')  
+PL_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Fall', sample2 = 'DL Fall') 
+PL_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Spring') 
+PL_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PL Spring') 
+PL_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Summer') 
+PL_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PL Summer') 
+PL_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Fall') 
+PL_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PL Fall') 
+PL_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'DL Summer') 
+PL_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PL Summer') 
+PL_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'DL Fall') 
+PL_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PL Fall') 
+PL_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'DL Fall') 
+PL_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'PL Fall') 
+
+##PL_VL (16)
+PL_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Winter')      
+PL_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'VL Spring')      
+PL_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'VL Summer')  
+PL_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Fall', sample2 = 'VL Fall') 
+PL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Spring') 
+PL_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PL Spring') 
+PL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Summer') 
+PL_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PL Summer') 
+PL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Fall') 
+PL_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PL Fall') 
+PL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'VL Summer') 
+PL_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PL Summer') 
+PL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'VL Fall') 
+PL_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PL Fall') 
+PL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'VL Fall') 
+PL_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'PL Fall') 
+
+##DL_VL
+DL_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Winter')      
+DL_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'VL Spring')      
+DL_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'VL Summer')  
+DL_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Fall', sample2 = 'VL Fall') 
+DL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Spring') 
+DL_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'DL Spring') 
+DL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Summer') 
+DL_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'DL Summer') 
+DL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Fall') 
+DL_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'DL Fall') 
+DL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'VL Summer') 
+DL_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'DL Summer') 
+DL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'VL Fall') 
+DL_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'DL Fall') 
+DL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'VL Fall') 
+DL_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'DL Fall') 
+
+common_asv_sum <- 
+  bind_rows(CD_CD_W_Sp, CD_CD_W_Su, CD_CD_W_F, CD_CD_Sp_Su, CD_CD_Sp_F, CD_CD_Su_F,
+            CL_CL_W_Sp, CL_CL_W_Su, CL_CL_W_F, CL_CL_Sp_Su, CL_CL_Sp_F, CL_CL_Su_F,
+            PL_PL_W_Sp, PL_PL_W_Su, PL_PL_W_F, PL_PL_Sp_Su, PL_PL_Sp_F, PL_PL_Su_F,
+            PD_PD_W_Sp, PD_PD_W_Su, PD_PD_W_F, PD_PD_Sp_Su, PD_PD_Sp_F, PD_PD_Su_F,
+            DL_DL_W_Sp, DL_DL_W_Su, DL_DL_W_F, DL_DL_Sp_Su, DL_DL_Sp_F, DL_DL_Su_F,
+            VL_VL_W_Sp, VL_VL_W_Su, VL_VL_W_F, VL_VL_Sp_Su, VL_VL_Sp_F, VL_VL_Su_F,
+            CD_CL_W, CD_CL_Sp, CD_CL_Su, CD_CL_F, 
+            CD_CL_W_Sp, CD_CL_Sp_W, CD_CL_W_Su, CD_CL_Su_W, CD_CL_W_F, CD_CL_F_W, CD_CL_Sp_Su , CD_CL_Su_Sp, CD_CL_Sp_F, CD_CL_F_Sp, CD_CL_Su_F, CD_CL_F_Su, 
+            CD_PD_W, CD_PD_Sp, CD_PD_Su, CD_PD_F,
+            CD_PD_W_Sp, CD_PD_Sp_W, CD_PD_W_Su, CD_PD_Su_W, CD_PD_W_F, CD_PD_F_W, CD_PD_Sp_Su , CD_PD_Su_Sp, CD_PD_Sp_F, CD_PD_F_Sp, CD_PD_Su_F, CD_PD_F_Su,
+            CD_PL_W, CD_PL_Sp, CD_PL_Su, CD_PL_F,
+            CD_PL_W_Sp, CD_PL_Sp_W, CD_PL_W_Su, CD_PL_Su_W, CD_PL_W_F, CD_PL_F_W, CD_PL_Sp_Su , CD_PL_Su_Sp, CD_PL_Sp_F, CD_PL_F_Sp, CD_PL_Su_F, CD_PL_F_Su,
+            CD_DL_W, CD_DL_Sp, CD_DL_Su, CD_DL_F,
+            CD_DL_W_Sp, CD_DL_Sp_W, CD_DL_W_Su, CD_DL_Su_W, CD_DL_W_F, CD_DL_F_W, CD_DL_Sp_Su , CD_DL_Su_Sp, CD_DL_Sp_F, CD_DL_F_Sp, CD_DL_Su_F, CD_DL_F_Su, 
+            CD_VL_Sp, CD_VL_Su, CD_VL_F,
+            CD_VL_W_Sp, CD_VL_Sp_W, CD_VL_W_Su, CD_VL_Su_W, CD_VL_W_F, CD_VL_F_W, CD_VL_Sp_Su , CD_VL_Su_Sp, CD_VL_Sp_F, CD_VL_F_Sp, CD_VL_Su_F, CD_VL_F_Su, 
+            PD_PL_W, PD_PL_Sp, PD_PL_Su, PD_PL_F,
+            PD_PL_W_Sp, PD_PL_Sp_W, PD_PL_W_Su, PD_PL_Su_W, PD_PL_W_F, PD_PL_F_W, PD_PL_Sp_Su , PD_PL_Su_Sp, PD_PL_Sp_F, PD_PL_F_Sp, PD_PL_Su_F, PD_PL_F_Su,
+            PD_DL_W, PD_DL_Sp, PD_DL_Su, PD_DL_F,
+            PD_DL_W_Sp, PD_DL_Sp_W, PD_DL_W_Su, PD_DL_Su_W, PD_DL_W_F, PD_DL_F_W, PD_DL_Sp_Su , PD_DL_Su_Sp, PD_DL_Sp_F, PD_DL_F_Sp, PD_DL_Su_F, PD_DL_F_Su, 
+            PD_VL_Sp, PD_VL_Su, PD_VL_F,
+            PD_VL_W_Sp, PD_VL_Sp_W, PD_VL_W_Su, PD_VL_Su_W, PD_VL_W_F, PD_VL_F_W, PD_VL_Sp_Su , PD_VL_Su_Sp, PD_VL_Sp_F, PD_VL_F_Sp, PD_VL_Su_F, PD_VL_F_Su,                 
+            PL_DL_W, PL_DL_Sp, PL_DL_Su, PL_DL_F,
+            PL_DL_W_Sp, PL_DL_Sp_W, PL_DL_W_Su, PL_DL_Su_W, PL_DL_W_F, PL_DL_F_W, PL_DL_Sp_Su , PL_DL_Su_Sp, PL_DL_Sp_F, PL_DL_F_Sp, PL_DL_Su_F, PL_DL_F_Su, 
+            PL_VL_Sp, PL_VL_Su, PL_VL_F,
+            PL_VL_W_Sp, PL_VL_Sp_W, PL_VL_W_Su, PL_VL_Su_W, PL_VL_W_F, PL_VL_F_W, PL_VL_Sp_Su , PL_VL_Su_Sp, PL_VL_Sp_F, PL_VL_F_Sp, PL_VL_Su_F, PL_VL_F_Su,                 
+            DL_VL_Sp, DL_VL_Su, DL_VL_F,
+            DL_VL_W_Sp, DL_VL_Sp_W, DL_VL_W_Su, DL_VL_Su_W, DL_VL_W_F, DL_VL_F_W, DL_VL_Sp_Su , DL_VL_Su_Sp, DL_VL_Sp_F, DL_VL_F_Sp, DL_VL_Su_F, DL_VL_F_Su) %>%
+  separate(seas_treat.x, '_', into = c('from', 'to')) %>%
+  left_join(num_asv_seas_treat, by = c('from' = 'seas_treat')) %>%
+  left_join(num_asv_seas_treat, by = c('to' = 'seas_treat')) %>%
+  mutate(division = case_when( n.x < n.y ~ n.x,
+                               n.y < n.x ~ n.y,
+                               n.x == n.y ~ n.x)) %>%
+  mutate(relative_connectivity = num_common_asvs/division) %>%
+  mutate(sample = paste0(from, to))  
+
+##prepare graph
+edges <- common_asv_sum %>%
+  select(from, to) %>%
+  filter(from != is.na(from))
+vertices <- common_asv_sum %>%
+  select(sample) %>%
+  mutate(size = 10) %>%
+  as_tibble()
+
+vertices <- data.frame(rbind(as_tibble(common_asv_sum$from), 
+                             as_tibble(common_asv_sum$to))) %>%
+  group_by(value) %>%
+  unique() %>%
+  mutate(size = 10) %>%
+  separate(value, ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  mutate(Treatment = as.factor(Treatment),
+         Season = as.factor(Season),
+         value = as.factor(value)) %>%
+  select(value, Season, Treatment) %>%
+  filter(value != is.na(value)) %>%
+  as_tibble()
+
+vertices$Season <- vertices$Season %>% 
+  factor(levels = c('Winter', 'Spring', 'Summer', 'Fall'))
+
+vertices$Treatment <- vertices$Treatment %>% 
+  factor(levels = c('CD', 'CL', 'PD', 'PL', 'DL', 'VL'))
+
+vertices <- vertices %>%
+  mutate(value = fct_relevel(value, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+                                      "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+                                      "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+                                      "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall"))) %>%
+  
+  arrange(value) %>%
+  as_tibble()
+
+connections <- common_asv_sum %>%
+  separate(from, ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  filter(relative_connectivity != is.na(relative_connectivity)) %>%
+  select(from, to, relative_connectivity, Treatment, Season) 
+
+num_connections1 <- common_asv_sum %>%
+  group_by(from) %>%
+  dplyr::summarize(n = n()) %>%
+  right_join(vertices, by = c('from' = 'value'))
+
+num_connections2 <- common_asv_sum %>%
+  group_by(to) %>%
+  dplyr::summarize(n = n()) %>%
+  right_join(vertices, by = c('to' = 'value'))
+
+num_connections12 <- num_connections1 %>%
+  left_join(num_connections2, by=c('Season' = 'Season', 'Treatment' = 'Treatment')) %>%
+  mutate(n.x = case_when(#!is.na(n.x) ~ n.x,
+    is.na(n.x) ~ '0',
+    TRUE ~ as.character(n.x)),
+    n.y = case_when(#!is.na(n.x) ~ n.x,
+      is.na(n.y) ~ '0',
+      TRUE ~ as.character(n.y))
+  ) %>%
+  mutate(num_connections = (as.numeric(n.x)+as.numeric(n.y)))
+
+common_asv_sum$from
+common_asv_sum$to
+
+# Build a network object from this dataset:
+mygraph_rel <- graph_from_data_frame(edges, vertices = vertices)
+
+# The connection object must refer to the ids of the leaves:
+from = match( connections$from, vertices$value)
+to = match( connections$to, vertices$value)
+
+##CIRCULAR CONNECTIONS 
+specific_range <- common_asv_sum %$%
+  relative_connectivity %>%
+  range()
+
+##Plot connections > 30%  (relative connections, figure 6D) ----
+common_asvs_1gr_relative <- ggraph(mygraph_rel, layout="linear", circular = TRUE) + 
+  geom_edge_arc(aes(width = as.numeric(connections$relative_connectivity), 
+                    color = as.numeric(connections$relative_connectivity)),
+  fold=FALSE,
+  edge_alpha=0.8,
+  lineend = 'square',
+  linejoin = 'mitre', check_overlap = TRUE) +
+  scale_edge_colour_gradientn(colours = palete_gradient, name = 'Relative\nconnectivity')+
+  scale_edge_width_continuous(limits = c(0.3, 0.89), guide = 'none')+
+  coord_fixed()+
+  geom_node_point(aes(color = Season, size = num_connections12$num_connections/2), alpha = 0.8)+
+  scale_size(range=c(11/2,19/2), limits = c(11/2,19/2)) +
+  geom_node_text(aes(label=Treatment), vjust = -0.1, show.legend = TRUE) + 
+  scale_color_manual(values = palette_seasons_4)+
+  guides(color = guide_legend(ncol = 1, size = 10,
+                              override.aes = aes(label = '')),
+         shape = guide_legend(ncol = 1, size = 1),
+         size = 'none')+
+  theme_void() +
+  theme(legend.text = element_text(size = 5), 
+        legend.title = element_text(size =7),
+        legend.box.spacing = unit(1, 'mm'))
+
+# ggsave(filename = 'common_asvs_all_1gr_relative_02.pdf', plot = common_asvs_1gr_relative, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 188, height = 188, units = 'mm')
+
+## Plot connections > 30%  (absolut numbers, figure S8D) ----
+edges <- common_asv_sum %>%
+  select(from, to) %>%
+  filter(from != is.na(from))
+vertices <- common_asv_sum %>%
+  select(sample) %>%
+  mutate(size = 10) %>%
+  as_tibble()
+
+vertices <- data.frame(rbind(as_tibble(common_asv_sum$from), 
+                             as_tibble(common_asv_sum$to))) %>%
+  group_by(value) %>%
+  unique() %>%
+  mutate(size = 10) %>%
+  separate(value, ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  mutate(Treatment = as.factor(Treatment),
+         Season = as.factor(Season),
+         value = as.factor(value)) %>%
+  select(value, Season, Treatment) %>%
+  filter(value != is.na(value)) %>%
+  as_tibble()
+
+vertices$Season <- vertices$Season %>% 
+  factor(levels = c('Winter', 'Spring', 'Summer', 'Fall'))
+
+vertices$Treatment <- vertices$Treatment %>% 
+  factor(levels = c('CD', 'CL', 'PD', 'PL', 'DL', 'VL'))
+
+vertices <- vertices %>%
+  mutate(value = fct_relevel(value, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+                                      "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+                                      "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+                                      "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall"))) %>%
+  
+  arrange(value) %>%
+  as_tibble()
+
+connections <- common_asv_sum %>%
+  separate(from, ' ', into = c('Treatment', 'Season'), remove = F) %>%
+  filter(num_common_asvs != is.na(num_common_asvs)) %>%
+  select(from, to, num_common_asvs, Treatment, Season) 
+
+num_connections1 <- common_asv_sum %>%
+  group_by(from) %>%
+  dplyr::summarize(n = n()) %>%
+  right_join(vertices, by = c('from' = 'value'))
+
+num_connections2 <- common_asv_sum %>%
+  group_by(to) %>%
+  dplyr::summarize(n = n()) %>%
+  right_join(vertices, by = c('to' = 'value'))
+
+num_connections12 <- num_connections1 %>%
+  left_join(num_connections2, by=c('Season' = 'Season', 'Treatment' = 'Treatment')) %>%
+  mutate(n.x = case_when(#!is.na(n.x) ~ n.x,
+    is.na(n.x) ~ '0',
+    TRUE ~ as.character(n.x)),
+    n.y = case_when(#!is.na(n.x) ~ n.x,
+      is.na(n.y) ~ '0',
+      TRUE ~ as.character(n.y))
+  ) %>%
+  mutate(num_connections = (as.numeric(n.x)+as.numeric(n.y)))
+
+# Build a network object from this dataset:
+mygraph <- graph_from_data_frame(edges, vertices = vertices)
+
+# The connection object must refer to the ids of the leaves:
+from = match( connections$from, vertices$value)
+to = match( connections$to, vertices$value)
+
+##CIRCULAR CONNECTIONS 
+specific_range <- common_asv_sum %$%
+  num_common_asvs %>%
+  range() ##the 30% percent of 132 is 39,6 plot > 39.6 common ASVs
+
+common_asvs_1gr_absolut <- ggraph(mygraph, layout="linear", circular = TRUE) +
+  geom_edge_arc(aes(width = as.numeric(connections$num_common_asvs), 
+                    color = as.numeric(connections$num_common_asvs)
+  ),
+  fold=FALSE,
+  edge_alpha=0.8,
+  lineend = 'square',
+  linejoin = 'mitre', check_overlap = TRUE) + 
+  scale_edge_colour_gradientn(colours = palete_gradient, name = 'Nº of\ncommon\nASVs')+
+  scale_edge_width_continuous(limits = c(39.6, 132), guide = 'none')+
+  coord_fixed()+
+  geom_node_point(aes(color = Season, size = num_connections12$num_connections/2), alpha = 0.8)+#, size = 0.75
+  scale_size(range=c(11/2,19/2), limits = c(11/2,19/2)) +
+  geom_node_text(aes(label=Treatment), vjust = 0.1, show.legend = TRUE) + #, angle=65, hjust=1, nudge_y = -1.1, size=2.3
+  scale_color_manual(values = palette_seasons_4)+
+  guides(color = guide_legend(ncol = 1, size = 10,
+                              override.aes = aes(label = '')),
+         shape = guide_legend(ncol = 1, size = 1),
+         size = 'none')+
+  theme_void() +
+  theme(legend.text = element_text(size = 5), 
+        legend.title = element_text(size =7),
+        legend.box.spacing = unit(1, 'mm'))
+# 
+# ggsave(filename = 'common_asvs_all_1gr_absolut_30perc.pdf', plot = common_asvs_1gr_absolut, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 188, height = 188, units = 'mm')
+
+
+
+# ----- 9. RELATIONSHIP BETWEEN ABUNDANCE AND GROWTH ----------------
+
+#PREVIOUSLY WE PERFORMED A CLUSTERING AT 100% BETWEEN ASV SEQUENCES FROM IN SITU DATA & GROWTH RATES FROM THE EXPERIMENTS ---------
+##for these purpuse we used vsearch function cluster_fast, which allows us to clusterize the fasta sequences in filename 
+
+###ONLY ASV PRESENT IN SITU AND GROWING ASV (SIGNIFICATIVELY)
+#Load results data from the clustering at 100% 
+cluster_miau_remei <- read.table('data/cluster_remei_miau_asv/clustering_results.txt', header = F)
+cluster_miau_remei %>%
+  dim() #5196 asv relacionades entre un dataset i l'altre 
+
+colnames(cluster_miau_remei) <- c('v1', 'v2', 'v3', 'clustering', 'v5', 'v6', 'v7', 'v8', 'col1_asv', 'col2_asv')
+str_count(cluster_miau_remei$col1_asv, "remei") %>%
+  sum() #3642
+str_count(cluster_miau_remei$col1_asv, "miau") %>%
+  sum() #1554
+str_count(cluster_miau_remei$col2_asv, "remei") %>%
+  sum() #1554
+str_count(cluster_miau_remei$col2_asv, "miau") %>%
+  sum() #3642
+
+cluster_miau_remei <- cluster_miau_remei %>%
+  separate(col1_asv, c('asv_num_col1', 'size_col1'), sep = ';') %>%
+  separate(col2_asv, c('asv_num_col2', 'size_col2'), sep = ';')
+
+cluster_miau_remei <- cluster_miau_remei %>%
+  mutate(relation_miau_remei1 = paste(asv_num_col1,'-',asv_num_col2)
+  )
+
+cluster_miau_remei$relation_miau_remei1 %>%
+  unique() #5196 
+cluster_miau_remei  %>%
+  dim()
+
+## Add ASV sequences to relate both datasets
+miau_seqs <- read.fasta('data/cluster_remei_miau_asv/MIAU_runs_seqtab_final.fasta')
+remei_seqs <- read.fasta('data/cluster_remei_miau_asv/remei_1_2_pool_seqtab_final.fasta')
+
+dna_REMEI<- readDNAStringSet('data/cluster_remei_miau_asv/remei_1_2_pool_seqtab_final.fasta')
+seq_name = names(dna_REMEI)
+sequence = paste(dna_REMEI)
+remei_seqs <- data.frame(seq_name, sequence) %>%
+  as_tibble() %>%
+  mutate(asv_num_ed = str_replace(seq_name, ';', 'remei;')) %>%
+  separate(asv_num_ed, c('asv_num', 'size'), sep = ';')
+
+dna_miau <- readDNAStringSet('data/cluster_remei_miau_asv/MIAU_runs_seqtab_final.fasta')
+seq_name = names(dna_miau)
+sequence = paste(dna_miau)
+
+miau_seqs <- data.frame(seq_name, sequence) %>%
+  as_tibble() %>%
+  mutate(asv_num_ed = str_replace(seq_name, ';', 'miau;')) %>%
+  separate(asv_num_ed, c('asv_num', 'size'), sep = ';')
+
+cluster_miau_remei <- cluster_miau_remei %>%
+  mutate(miau_asv_num = as.character(str_extract_all(relation_miau_remei1, pattern = ('asv[0-9]*(miau)+'))),
+         remei_asv_num = as.character(str_extract_all(relation_miau_remei1, pattern = ('asv[0-9]*(remei)+')))) 
+
+cluster_remei_seqs <- cluster_miau_remei %>%
+  left_join(remei_seqs, by = c('remei_asv_num' = 'asv_num'))
+
+##unload plyr and dplyr if not working
+cluster_remei_seqs <- cluster_remei_seqs %>%
+  rename(seq_name = 'seq_name_remei',
+         sequence = 'sequence_remei',
+         size = 'size_remei')
+
+cluster_miau_seqs <- cluster_miau_remei %>%
+  left_join(miau_seqs, by = c('miau_asv_num' = 'asv_num'))
+
+cluster_miau_seqs <- cluster_miau_seqs %>%
+  rename(seq_name = 'seq_name_miau',
+         sequence = 'sequence_miau',
+         size = 'size_remei')
+
+cluster_miau_remei %$%
+  asv_num_col1 %>%
+  unique() %>% #5196 
+  length()
+
+cluster_miau_remei %$%
+  asv_num_col2 %>%
+  unique()%>% #5196
+  length()
+
+#prepare growth rates experiments dataset
+##taxonomy from experiments dataset
+remei_tax <- rem_fc_filt@tax_table %>%
+  as_tibble()
+
+##join ASVs sequences and growth rates
+growth_rates_remei_seqs <- reg_all_slopes_chosen_silva_tax %>%
+  inner_join(remei_tax,  by = 'asv_num', copy = TRUE)%>%
+  as_tibble()
+
+##Prepare insitu dataset
+###Import data
+# miau_seqs <- read.fasta('../MIAU_seqs/MIAU_runs_seqtab_final.fasta')
+
+miau_asv_tab <- read_rds('../MIAU_seqs/MIAU_runs_seqtab_final.rds')  %>%
+  as_tibble(rownames = 'sample_code')
+
+tax_silva_miau <- readRDS("../MIAU_seqs/MIAUruns_assignTax_tax_assignation.rds") %>% 
+  as_tibble(rownames = 'sequence')
+
+miau_asv_tab_insitu <- miau_asv_tab %>%
+  filter(sample_code %in% c("x254", "x255", "x256", "x257"))
+
+miau_asv_tab_insitu_codes <- miau_asv_tab_insitu$sample_code
+
+miau_asv_tab_insitu_filt <- miau_asv_tab_insitu %>%
+  dplyr::select(-sample_code) %>%
+  dplyr::select(where(~ sum(.) != 0)) %>%
+  cbind(miau_asv_tab_insitu_codes)
+
+miau_seqs <- miau_asv_tab_insitu_filt %>%
+  t() %>%
+  as.data.frame() %>%
+  rownames_to_column(var = 'ASV_seq') %>%
+  row_to_names(row_number = 3874, remove_row = T, remove_rows_above = F)
+
+tax_silva_miau_filt <- tax_silva_miau %>%  # filter all results without domain assignation 
+  dplyr::filter(!is.na('Kingdom'), !is.na('Phylum')) %>% #And the Chloros/Mitochondria seqs
+  dplyr::filter(Order !=  'Chloroplast') %>% 
+  dplyr::filter(Family !=  'Mitochondria') 
+
+miau_seqs_filt  <- miau_seqs %>% #filter miau seqs by only the one's that are not unclassified or chloroplasts and mitochondria
+  filter(miau_asv_tab_insitu_codes %in% tax_silva_miau_filt$sequence) #2548 ASV
+
+miau_seqs_filt_ed <- miau_seqs_filt %>%
+  mutate(across(!miau_asv_tab_insitu_codes, as.numeric))
+
+miau_seqs_filt_ed_fasta <- miau_seqs_filt_ed %>%
+  mutate(names = str_c( 'asv' , 1:nrow(miau_seqs_filt_ed)))
+
+miau_seqs_filt_rel_abund <- apply(miau_seqs_filt_ed[,c(2:5)], 2,   function(x){x / sum(x)}) %>%
+  cbind(miau_seqs_filt_ed$miau_asv_tab_insitu_codes) %>%
+  as_tibble()
+
+colnames(miau_seqs_filt_rel_abund) <- c("x254", "x255", "x256", "x257", "asv_seqs")
+
+miau_seqs_filt_rel_abund_long <- miau_seqs_filt_rel_abund %>%
+  pivot_longer(cols = starts_with('x'), names_to = 'sample', values_to = 'rel_abund') %>%
+  mutate(season = case_when(sample == 'x254' ~ 'Winter',
+                            sample == 'x255' ~ 'Spring',
+                            sample == 'x256' ~ 'Summer',
+                            sample == 'x257' ~ 'Fall'),
+         rel_abund = as.numeric(rel_abund))
+
+miau_seqs_filt_rel_abund_long_tax <- miau_seqs_filt_rel_abund_long %>%
+  left_join(tax_silva_miau_filt, by = c('asv_seqs' = 'sequence')) ##add taxonomy to check if its the same for both datasets
+
+## Join GR data with in situ rel abund and sequences 
+miau_seqs_filt_rel_abund_long <- miau_seqs_filt_rel_abund_long %>% ### Add a 0 to the growing ASV that don't have a match in situ
+  mutate(miau_seqs_filt_rel_abund_long = ifelse(is.na(rel_abund), 0, rel_abund))
+
+## Join GR data with in situ relative abundance and sequences 
+sequences_rel_abund <- cluster_miau_seqs %>%
+  dplyr::filter(relation_miau_remei1 != is.na(relation_miau_remei1)) %>%
+  right_join(miau_seqs_filt_rel_abund_long, by = c('sequence_miau' = 'asv_seqs'))
+
+sequences_rel_abund %$%
+  relation_miau_remei1 %>%
+  unique() %>%
+  length() #1515 asv 
+
+## Join gr data form the clustering and ASV sequences
+sequences_gr <- cluster_remei_seqs %>%
+  dplyr::filter(relation_miau_remei1 != is.na(relation_miau_remei1)) %>%
+  right_join(growth_rates_remei_seqs, by = c('sequence_remei' = '.otu')) %>%
+  filter(slope_chosen_days != is.na(slope_chosen_days) &
+           asv_num_col1 != is.na(asv_num_col1))
+
+sequences_gr %$%
+  asv_num_col1 %>%
+  unique() %>%
+  length() #833 asv
+
+# Joing gr data with relative abundance 
+seqs_gr_rel_abund <- sequences_gr %>%
+  inner_join(sequences_rel_abund, by = c('relation_miau_remei1', 'season')) %>%
+  dplyr::filter(slope_chosen_days != is.na(slope_chosen_days))
+
+seqs_gr_rel_abund <- seqs_gr_rel_abund %>%  
+  mutate(rel_abund = ifelse(is.na(rel_abund), 0, rel_abund))
+
+seqs_gr_rel_abund <- seqs_gr_rel_abund %>%
+  ungroup() %>%
+  mutate(rel_abund_ed = as.numeric(rel_abund))  %>%
+  mutate(rel_abund_ed2 = round(rel_abund, 3)) %>%
+  arrange(rel_abund_ed) %>%
+  mutate(rank_abund_2 = rank(-rel_abund_ed),
+    behaviour = case_when(rel_abund_ed < 0.001 ~ 'Rare x < 0.1% ',
+                          rel_abund_ed > 0.01 ~ 'Abundant x > 1%',
+                          rel_abund_ed <0.01  & rel_abund >0.001 ~ 'Mid  0.1% < x < 1%')) 
+
+seqs_gr_rel_abund$treatment <- seqs_gr_rel_abund$treatment %>% 
+  factor(levels=(c("CL", "CD", "PL", "PD", "DL", "VL", 'NA')))
+seqs_gr_rel_abund$season <- seqs_gr_rel_abund$season %>% 
+  factor(levels=(c("Winter", "Spring", "Summer", "Fall")))
+
+seqs_gr_rel_abund %>%
+  dplyr::filter(slope_chosen_days != (is.na(slope_chosen_days))) %$% 
+  relation_miau_remei1 %>%
+  unique() %>%
+  length()
+
+## table with % of rare reactive ASVs (add to plots as geom_text) 
+##from the total potential bloomers GR >2  & <0.1% community
+
+total_asv_match_remei_miau <- seqs_gr_rel_abund %>%
+  dplyr::filter(rel_abund_ed < 0.01 & slope_chosen_days > 2) %>%
+  group_by(season, treatment) %>%
+  dplyr::summarize(total_common_asv_potential_bloomers = n())
+
+total_asv_match_remei_miau_potential_bloomers <- seqs_gr_rel_abund %>%
+  group_by(season, treatment) %>%
+  dplyr::summarize(total_common_asv = n()) %>%
+  dplyr::select(-season) %>%
+  cbind(total_asv_match_remei_miau) %>%
+  dplyr::select(season...1, treatment...2, total_common_asv, total_common_asv_potential_bloomers)
+
+colnames(total_asv_match_remei_miau_potential_bloomers) <- c('season', 'treatment', 'total_common_asv',
+                                                             'total_common_asv_potential_bloomers')
+
+rare_reactive_asv <- seqs_gr_rel_abund %>%
+  filter(rel_abund_ed < 0.001 & slope_chosen_days > 2) %>%
+  group_by(season, treatment) %>%
+  dplyr::summarize(rare_reactive_asv_sum = n())
+
+summarize_match_remei_miau <- total_asv_match_remei_miau_potential_bloomers %>%
+  full_join(rare_reactive_asv, by = c('season' = 'season', 'treatment')) %>%
+  mutate(rare_reactive_perc = round(rare_reactive_asv_sum/total_common_asv_potential_bloomers*100, 2))
+summarize_match_remei_miau <- summarize_match_remei_miau %>%
+  mutate(rare_reactive_perc_ed = ifelse(is.na(rare_reactive_perc), 0, rare_reactive_perc),
+         rare_reactive_asv_sum = ifelse(is.na(rare_reactive_asv_sum), 0, rare_reactive_asv_sum))
+
+growing_asv <- reg_all_slopes_chosen_silva_tax %>%
+  group_by(season, treatment) %>%
+  dplyr::summarize(total_growing_asv = n())
+
+insitu_asv <- miau_seqs_filt_rel_abund_long %>%
+  filter(rel_abund > 0) %>%
+  group_by(season) %>%
+  dplyr::summarize(insitu_present_asv = n())
+
+summarize_insitu_vs_growing <- summarize_match_remei_miau %>%
+  left_join(growing_asv, by = c('season' = 'season', 'treatment' = 'treatment')) %>%
+  left_join(insitu_asv, by = c('season' = 'season')) %>%
+  dplyr::select(-rare_reactive_perc)
+
+#write.table(dplyr::summarize_insitu_vs_growing, 'results/tables/dplyr::summarize_insitu_vs_growing_ed2.txt', sep='\t')
+
+
+## plot relative abundance vs. growth rate (figure S9) -----
+rel_abund_gr_relation_rank <- 
+  seqs_gr_rel_abund %>%
+  mutate(bloomers_true = case_when(slope_chosen_days >2  ~ 'bloomers',
+                                   slope_chosen_days <2 & rel_abund >= 0.01 ~ 'no')) %>%
+  ggplot(aes(log10(rank_abund_2), slope_chosen_days, color = ifelse(bloomers_true == 'bloomers', class.x, NA)))+ 
+  geom_point(aes(shape =  behaviour), size = 2.5, alpha = 0.8)+
+  geom_rect(aes(xmin = 0, xmax = Inf, ymin = 0, ymax = 2), 
+            fill = '#D0CFC8', show.legend = FALSE, linejoin = NULL, color = NA, alpha = 0.02)+
+  geom_rect(aes(xmin = 0, xmax = log10(rank_abund_2[match(0.01, round(rel_abund_ed2, digits = 2))]), ymin = 2, ymax = Inf), 
+            fill = '#D0CFC8', show.legend = FALSE, linejoin = NULL, color = NA, alpha = 0.02)+
+  geom_vline(aes(xintercept = log10(rank_abund_2[match(0.01, round(rel_abund_ed2, digits = 2))])), linetype = 'dashed')+
+  geom_vline(aes(xintercept = log10(rank_abund_2[match(0.001, round(rel_abund_ed2, digits = 3))])), linetype = 'dashed')+
+  geom_hline(yintercept = 2, linetype = 'dashed')+
+  labs(y = expression("Growth rate day"^"-1"), 
+       x = 'Log10(rank abundance)', color = 'Class',
+       shape = 'In situ\nrelative\nabundance (%)')+
+  guides(color=guide_legend(ncol = 4, size = 3),
+         shape = guide_legend(ncol = 1, size = 3))+
+  scale_color_manual(values = palette_class_assigned)+
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 3.6))+
+  facet_grid(~season~treatment)+
+  geom_text(data = summarize_match_remei_miau, mapping = aes(x = 3.25, y = 2.8, label = paste(round(rare_reactive_perc_ed, 0),'\n%')), 
+            check_overlap = TRUE, na.rm = TRUE, show.legend = FALSE, nudge_x = 0, nudge_y = 6, 
+            color = 'black', size = 2.5)+
+  theme_bw()+
+  theme(strip.text = element_text(size = 10), axis.text.x = element_text(angle = 0), legend.position = "bottom",
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.text = element_text(size = 7),
+        legend.title = element_text(size = 10), strip.background = element_blank(), #strip.text.x = element_blank(),
+        panel.border = element_blank()) 
+
+# ggsave(filename = 'rel_abund_gr_cluster100_rank_0rel_abund_ed4.pdf', 
+#        plot = rel_abund_gr_relation_rank, device = NULL, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 220, height = 188, units = 'mm')
+
+
+
+## plot relative abundance vs. growth rate (figure 7) all_together figure-------
+seqs_gr_rel_abund <- seqs_gr_rel_abund %>%
+  ungroup() %>%
+  mutate(rel_abund_ed = as.numeric(rel_abund))  %>%
+  mutate(rel_abund_ed2 = round(rel_abund, 3)) %>%
+  arrange(rel_abund_ed) %>%
+  mutate(rank_abund_2 = rev(row_number(rel_abund_ed)),
+    behaviour = case_when(rel_abund_ed < 0.001 ~ 'Rare x < 0.1% ',
+                          rel_abund_ed > 0.01 ~ 'Abundant x > 1%',
+                          rel_abund_ed <0.01  & rel_abund >0.001 ~ 'Mid  0.1% < x < 1%')) 
+
+seqs_gr_rel_abund$treatment <- seqs_gr_rel_abund$treatment %>% 
+  factor(levels=(c("CL", "CD", "PL", "PD", "DL", "VL", 'NA')))
+seqs_gr_rel_abund$season <- seqs_gr_rel_abund$season %>% 
+  factor(levels=(c("Winter", "Spring", "Summer", "Fall")))
+
+##table with % of rare reactive ASVs (add to plots as geom_text) 
+##from the total potential most-responsive <2 GR & <0.1% community
+total_asv_match_remei_miau_potential_bloomers <- seqs_gr_rel_abund %>%
+  filter(rel_abund_ed < 0.01 & slope_chosen_days > 2) %$%
+  asv_num %>%
+  unique() %>%
+  length() %>%
+  as_tibble_col(column_name = 'total_asv_match_remei_miau_potential_bloomers')
+
+total_asv_match_remei_miau <- seqs_gr_rel_abund %$%
+  asv_num %>%
+  unique() %>%
+  length() %>%
+  as_tibble_col(column_name = 'total_asv_match_remei_miau') %>%
+  cbind(total_asv_match_remei_miau_potential_bloomers) 
+
+rare_reactive_asv <- seqs_gr_rel_abund %>%
+  filter(rel_abund_ed < 0.001 & slope_chosen_days > 2) %$%
+  asv_num %>%
+  unique() %>%
+  length() %>%
+  as_tibble_col(column_name = 'rare_reactive_asv')
+
+summarize_match_remei_miau <- total_asv_match_remei_miau %>%
+  cbind(rare_reactive_asv) %>%
+  mutate(rare_reactive_perc = round(rare_reactive_asv/total_asv_match_remei_miau_potential_bloomers*100, 2))
+
+rel_abund_gr_relation_rank <- 
+  seqs_gr_rel_abund %>%
+  ggplot(aes(log10(rank_abund_2), slope_chosen_days))+ 
+  geom_point(aes(color = '929292'), size = 1, alpha = 0.7)+
+  geom_rect(aes(xmin = 0, xmax = Inf, ymin = 0, ymax = 2), 
+            fill = '#D0CFC8', show.legend = FALSE, linejoin = NULL, color = NA, alpha = 0.02)+
+  geom_rect(aes(xmin = 0, xmax = log10(rank_abund_2[match(0.01, round(rel_abund_ed2, digits = 2))]), ymin = 2, ymax = Inf), 
+            fill = '#D0CFC8', show.legend = FALSE, linejoin = NULL, color = NA, alpha = 0.02)+
+  geom_vline(aes(xintercept = log10(rank_abund_2[match(0.01, round(rel_abund_ed2, digits = 2))])), linetype = 'dashed')+
+  geom_vline(aes(xintercept = log10(rank_abund_2[match(0.001, round(rel_abund_ed2, digits = 3))])), linetype = 'dashed')+ 
+  geom_hline(yintercept = 2, linetype = 'dashed')+
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 3.4))+
+  scale_y_continuous(expand = c(0,0), limits = c(0, 10.2))+
+  labs(y = expression("Growth rate day"^"-1"), 
+       x = 'Log10(rank abundance)', color = 'Class')+
+  guides(color=guide_legend(ncol = 2, size = 7),
+         shape = guide_legend(ncol = 2, size = 3))+
+  scale_color_manual(values = palette_class_assigned)+
+  geom_text(data = summarize_match_remei_miau, mapping = aes(x = 2.8, y = 3, label = paste(round(rare_reactive_perc, 0),'\n%')), 
+            check_overlap = TRUE, na.rm = TRUE, show.legend = FALSE, nudge_x = 0.35, nudge_y = 6, 
+            color = 'black', size = 5)+
+  theme_bw()+
+  theme(strip.text = element_text(size = 7), axis.text.x = element_text(angle = 0), legend.position = "none",
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.text = element_text(size = 6),
+        legend.title = element_text(size = 7), strip.background = element_blank(), #strip.text.x = element_blank(),
+        panel.border = element_blank(), legend.key.size = unit(4, 'mm'), aspect.ratio = 38/39) 
+
+# ggsave(filename = 'rel_abund_gr_cluster100_rank_0rel_abund_all_together.pdf', 
+#        plot = rel_abund_gr_relation_rank, device = NULL, path = 'results/figures/corrected_asv_num/',
+#        width = 188, height = 160, units = 'mm')
+
+## plot most responsive ASVs GR>2, relative abundance t0 <1% and tf >1%  (figure S10)---------
+
+abundant_asv_tf <- rem_relabun_melt %>% 
+  dplyr::filter(time %in% c('t3', 't4') &
+           Abundance > 0.01) %>% #more than 1% of the community at time 3 or t4
+  dplyr::select(asv_num, Abundance, treatment, season, time) %>%
+  group_by(asv_num, treatment, season, time) %>%
+  dplyr::summarize(mean_abundance = mean(Abundance)) %>%
+  group_by(asv_num, treatment, season, time, mean_abundance) %>%
+  distinct() %>%
+  as_tibble() %>%
+  pivot_wider(names_from = time, values_from = mean_abundance, id_cols = c(asv_num, treatment, season)) %>%
+  mutate(high_mean = case_when (t3 > t4 ~ t3,
+                                t4 > t3 ~ t4, 
+                                is.na(t3) ~ t4,
+                                is.na(t4) ~ t3))
+
+abundant_asv_t0 <- 
+  rem_relabun_melt %>% 
+  dplyr::filter(time == 't0') %>%
+  dplyr::select(asv_num, Abundance, treatment, season, time) %>%
+  group_by(asv_num, treatment, season, time) %>%
+  dplyr::summarize(mean_abundance = mean(Abundance)) %>%
+  dplyr::filter(mean_abundance  < 0.01)
+
+abundant_asv_tf_t0 <- abundant_asv_tf %>%
+  left_join(abundant_asv_t0, by = c('season', 'treatment', 'asv_num'))
+
+reg_all_slopes_chosen_silva_tax_tf <- reg_all_slopes_chosen_silva_tax %>% 
+  right_join(abundant_asv_tf_t0, by = c('treatment' = 'treatment', 'season' = 'season', 'asv_num' = 'asv_num'), copy = TRUE) %>% 
+  mutate(rank_abund = rank(-high_mean)) %>%
+  distinct()
+
+seqs_gr_rel_abund_filt <- seqs_gr_rel_abund %>% 
+  dplyr::select(asv_num, season, treatment, slope_chosen_days, rel_abund) %>%
+  distinct()
+
+real_bloomers_natural_community <- reg_all_slopes_chosen_silva_tax_tf %>%
+  dplyr::select(treatment, season, asv_num, slope_chosen_days, class) %>%
+  left_join(seqs_gr_rel_abund_filt, by = c('asv_num' = 'asv_num', 
+                                           'season' = 'season', 
+                                           'treatment' = 'treatment',
+                                           'slope_chosen_days' = 'slope_chosen_days')) %>%
+  distinct() %>%
+  mutate(rank_natural_community = rank(-rel_abund))
+
+num_real_bloomers_natural_community <- real_bloomers_natural_community %>%
+  group_by(asv_num) %>%
+  dplyr::summarize(num_real_bloomers = n()) %>%
+  dplyr::summarize(num_real_bloomers = n())
+
+summarize_match_remei_miau <- summarize_match_remei_miau %>%
+  cbind(num_real_bloomers_natural_community) %>%
+  mutate(real_bloomers_percentage = num_real_bloomers/total_asv_match_remei_miau_potential_bloomers)
+
+real_bloomers_experiments_remei_nat_com <- real_bloomers_natural_community %>%
+  filter(treatment != is.na(treatment)) %>%
+  mutate(bloomers_true = case_when(slope_chosen_days >2   ~ 'bloomers',
+                                   slope_chosen_days <2 & rel_abund >= 0.01 ~ 'no')) %>%
+  ggplot(aes(log10(rank_natural_community), slope_chosen_days, color = ifelse(bloomers_true == 'bloomers', class, NA)))+ 
+  geom_text(data = summarize_match_remei_miau, mapping = aes(x = 2.6, y = 2.8, label = paste(round(real_bloomers_percentage*100, 0), '%')), 
+            check_overlap = TRUE, na.rm = TRUE, show.legend = FALSE, nudge_x = 0, nudge_y = 6.4, 
+            color = 'black', size = 2.5)+
+  geom_point(aes(), size = 1.5, alpha = 0.8)+#shape =  behaviour
+  geom_rect(aes(xmin = 0, xmax = Inf, ymin = 0, ymax = 2), 
+            fill = '#D0CFC8', show.legend = FALSE, linejoin = NULL, color = NA, alpha = 0.02)+
+  geom_rect(aes(xmin = 0, xmax = log10(rank_natural_community[match(0.01, round(rel_abund, digits = 2))]), ymin = 2, ymax = Inf), 
+            fill = '#D0CFC8', show.legend = FALSE, linejoin = NULL, color = NA, alpha = 0.02)+
+  geom_vline(aes(xintercept = log10(rank_natural_community[match(0.01, round(rel_abund, digits = 2))])), linetype = 'dashed')+
+  geom_vline(aes(xintercept = log10(rank_natural_community[match(0.001, round(rel_abund, digits = 3))])), linetype = 'dashed')+
+  geom_hline(yintercept = 2, linetype = 'dashed')+
+  labs(y = expression("Growth rate day"^"-1"), 
+       x = 'Log10(rank abundance)', color = 'Class',
+       shape = 'In situ\nrelative\nlog(rank_natural_community_abund) (%)')+ 
+  guides(color=guide_legend(ncol = 3, size = 5),
+         shape = guide_legend(ncol = 1, size = 2))+
+  scale_color_manual(values = palette_class_assigned)+
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 2.8))+
+theme_bw()+
+  theme(strip.text = element_text(size = 7), axis.text.x = element_text(angle = 0, size = 0), legend.position = "bottom",
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.text = element_text(size = 6),
+        legend.title = element_text(size = 6), strip.background = element_blank(), #strip.text.x = element_blank(),
+        panel.border = element_blank(), legend.key.size = unit(1, 'mm'), aspect.ratio = 38/39)
+
+ggsave(filename = 'real_bloomers_experiments_remei_natural_community_alltogether_ed3.pdf', plot = real_bloomers_experiments_remei_nat_com, device = NULL, path = 'results/figures/corrected_asv_num/',
+       width = 88, height = 88, units = 'mm')
