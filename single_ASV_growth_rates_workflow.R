@@ -82,6 +82,7 @@ library(stringi)
 library(seqinr)
 library(Biostrings)
 library(Hmisc)
+library(readxl)
 
 #define directory ----
 setwd ("~/Documentos/Doctorat/REMEI/")
@@ -1057,6 +1058,17 @@ gr_asv_mOTUs <- mean_gr_asv_motus_dapis |>
   theme(aspect.ratio = (4/4), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         text = element_text(size = 6))
 
+##calculate correlations ----
+#for non-normal data (pvalue < 0.05 in Shapiro test)
+mean_gr_asv_motus_dapis |>
+  colnames()
+
+cor_spearman <- rcorr(as.matrix(mean_gr_asv_motus_dapis[,c(4,5)]), type = 'spearman')
+
+#for normal data (pvalue > 0.05 in Shapiro test)
+cor_pear <- rcorr(as.matrix(mean_gr_asv_motus_dapis[,c(3,7)]), type = 'pearson')
+
+
 # gr_asv_motus_all <- mean_gr_asv_motus_dapis |>
 #   as_tibble() |>
 #   ggplot(aes(mean_motus,  mean_asv))+ #mean_motus,
@@ -1107,7 +1119,7 @@ reg_all_slopes_chosen_silva_tax_cn_nor_filt %$%
   unique(asv_num) #1270 ASVs
 
 reg_all_slopes_chosen_silva_tax_cn_nor_non <- reg_all_slopes_chosen_silva_tax_cn_nor_filt |>
-  left_join(reg_all_slopes_chosen_silva_tax_filt, by = c('treatment', 'season', 'asv_num', 'phylum', 'class', 'order', 
+  right_join(reg_all_slopes_chosen_silva_tax_filt, by = c('treatment', 'season', 'asv_num', 'phylum', 'class', 'order', 
                                                          'family'), suffix = c('.cn_nor', '.non')) 
 ##before correlation we check normality
 shapiro.test(as.numeric(reg_all_slopes_chosen_silva_tax_cn_nor_non$slope_chosen_days.cn_nor)) # =>p-value < 2.2e-16 (NO NORMALITY)
@@ -1141,11 +1153,20 @@ corr_cn_nor_non <- reg_all_slopes_chosen_silva_tax_cn_nor_non |>
   theme(aspect.ratio = (4/4), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         text = element_text(size = 7))
 
-ggsave('correlation_gr_cn_nor_non_ed2.pdf', corr_cn_nor_non, 
-       path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-       width = 88,
-       height = 88,
-       units = 'mm')
+# ggsave('correlation_gr_cn_nor_non_ed2.pdf', corr_cn_nor_non, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 88,
+#        height = 88,
+#        units = 'mm')
+
+
+##for non-normal data (pvalue < 0.05 in Shapiro test)
+reg_all_slopes_chosen_silva_tax_cn_nor_non |>
+  colnames()
+cor_spearman <- rcorr(as.matrix(reg_all_slopes_chosen_silva_tax_cn_nor_non[,c(18,23)]), type = 'spearman')
+
+my_cor_matrix_spear <- flat_cor_mat(cor_spearman$r, cor_spearman$P)
+head(my_cor_matrix_spear)
 
 ### by different treatments and seasons----
 corr_cn_nor_non_seas <- reg_all_slopes_chosen_silva_tax_cn_nor_non |>
@@ -1167,11 +1188,11 @@ corr_cn_nor_non_seas <- reg_all_slopes_chosen_silva_tax_cn_nor_non |>
   theme(aspect.ratio = (4/4), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         text = element_text(size = 7))
 
-ggsave('correlation_gr_cn_nor_non_seasons_ed2.pdf', corr_cn_nor_non_seas, 
-       path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-       width = 88,
-       height = 88,
-       units = 'mm')
+# ggsave('correlation_gr_cn_nor_non_seasons_ed2.pdf', corr_cn_nor_non_seas, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 88,
+#        height = 88,
+#        units = 'mm')
 
 corr_cn_nor_non_treat <- reg_all_slopes_chosen_silva_tax_cn_nor_non |>
   ggplot(aes(slope_chosen_days.cn_nor, slope_chosen_days.non))+
@@ -1192,11 +1213,11 @@ corr_cn_nor_non_treat <- reg_all_slopes_chosen_silva_tax_cn_nor_non |>
   theme(aspect.ratio = (4/4), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         text = element_text(size = 7))
 
-ggsave('correlation_gr_cn_nor_non_treat_ed2.pdf', corr_cn_nor_non_treat, 
-       path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-       width = 88,
-       height = 88,
-       units = 'mm')
+# ggsave('correlation_gr_cn_nor_non_treat_ed2.pdf', corr_cn_nor_non_treat, 
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 88,
+#        height = 88,
+#        units = 'mm')
 
 
 # ----- 6. GROWTH RATES DISTRIBUTION PATTERNS AT DIFFERENT TAXONOMIC RANKS ################ ----------------
@@ -2542,6 +2563,7 @@ grid.arrange(ridge_f_treatments_cd, ridge_f_treatments_cl,
 
 
 
+
 # ----- 7. GROWTH RATE TREATMENT RESPONSE ----------------
 ## labels----
 effects_labels2 <-  as_labeller(c(effect_top_down_virus = 'Top-down effect viruses (VL-DL)',
@@ -2574,7 +2596,7 @@ palete_gradient_cb2 <- c("#2e0030",
                          "#009759")
 
 ## Difference between growth rates at different treatments at ASV taxonomic rank (figure 5) -------
-effects_difference_asv <- reg_all_slopes_chosen_silva_tax_filt |> 
+effects_difference_asv <- reg_all_slopes_chosen_silva_tax |> 
   distinct(treatment, season, asv_num, domain, phylum, class, order, genus, asv_num, family, .keep_all = TRUE) |>
   group_by(treatment, season, domain, phylum, class, order, family, asv_num) |>
   dplyr::summarise(slope_chosen_days_mean = mean(slope_chosen_days),
@@ -2614,7 +2636,7 @@ effects_difference_asv <- reg_all_slopes_chosen_silva_tax_filt |>
 # 
 # write.csv(effects_difference_asv_table, 'results/tables/mean_sd_gr_treatment_asv.csv')
 
-#Bubble plot ASV level
+#Heatmap plot ASV level
 effects_difference_asv_l <- effects_difference_asv |>
   pivot_longer(cols = starts_with('effect'),
                names_to = 'effects',
@@ -2670,27 +2692,28 @@ difference_gr_treatments_asv <-
   group_by(asv_num, difference) |>
   mutate(counts = n(),
          family_asv_num = paste(family,'',asv_num)) |>
-  ggplot(aes(season, effects, color = difference))+
-  geom_point(aes(color = difference, size = difference), alpha = 1)+
-  scale_y_discrete(labels = effects_labels3)+
+  ggplot(aes(season, effects))+
+  geom_tile(aes(fill = difference), alpha = 1)+
+  scale_y_discrete(labels = effects_labels2)+
   scale_size(range = c(0, 10), name ="Growth rate difference\n between treatments")+
-  scale_colour_gradientn(colours = palete_gradient_cb)+
+  scale_fill_gradientn(colours = palete_gradient_cb)+
+  #facet_grid(vars(family_asv_num))+
   facet_wrap(vars(family_asv_num))+
-  labs(y = 'Treatments growth rates differences', x = 'Season', color = '')+
+  labs(y = 'Treatments growth rates differences', x = 'Season', fill = '')+
   theme_bw()+
   theme(legend.position = 'right', panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.text.x = element_text(angle = 60, size = 5, hjust = 1), 
         axis.text.y = element_text(size = 5), legend.title = element_text(size = 5), axis.title = element_text(size = 7),
         strip.text = element_text(size = 5), strip.background = element_blank(), legend.text = element_text(size = 5))
 
-ggsave('difference_gr_treatments_asv_num_v4.pdf', difference_gr_treatments_asv,
-       path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-       width = 180,
-       height = 160,
-       units = 'mm')
+# ggsave('difference_gr_treatments_asv_num_v5.pdf', difference_gr_treatments_asv,
+#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+#        width = 180,
+#        height = 160,
+#        units = 'mm')
 
 ## Difference between growth rates at different treatments at family taxonomic rank (figure S6) ----
-effects_difference_family <- reg_all_slopes_chosen_silva_tax_filt |> 
+effects_difference_family <- reg_all_slopes_chosen_silva_tax |> 
   distinct(treatment, season, asv_num, domain, phylum, class, order, genus, asv_num, family, .keep_all = TRUE) |>
   group_by(treatment, season, domain, phylum, class, order, family) |>
   dplyr::summarise(slope_chosen_days_mean = mean(slope_chosen_days),
@@ -2779,28 +2802,29 @@ difference_gr_treatments_family <-
   dplyr::filter(n() > 10) |>
   group_by(family, difference) |>
   mutate(counts = n()) |>
-  ggplot(aes(season, effects, color = difference))+
-  geom_point(aes(color = difference, size = difference), alpha = 1)+
-  scale_y_discrete(labels = effects_labels3)+
+  ggplot(aes(season, effects))+
+  geom_tile(aes(fill = difference), alpha = 1)+
+  scale_y_discrete(labels = effects_labels2)+
   scale_size(range = c(0, 10), name ="Growth rate difference\n between treatments")+
-  scale_colour_gradientn(colours = palete_gradient_cb)+
+  scale_fill_gradientn(colours = palete_gradient_cb)+
+  #facet_grid(vars(family_asv_num))+
   facet_wrap(vars(family_f))+
-  labs(y = 'Treatments growth rates differences', x = 'Season', color = '')+
+  labs(y = 'Treatments growth rates differences', x = 'Season', fill = '')+
   theme_bw()+
   theme(legend.position = 'right', panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.text.x = element_text(angle = 60, size = 5, hjust = 1), 
-        axis.text.y = element_text(size = 5), legend.title = element_text(size = 7), axis.title = element_text(size = 7),
-        strip.text = element_text(size = 7), strip.background = element_blank(), legend.text = element_text(size = 5))
-# 
-# ggsave('difference_gr_treatments_family5.pdf', difference_gr_treatments_family,
-#        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-#        width = 180,
-#        height = 160,
-#        units = 'mm')
+        axis.text.y = element_text(size = 5), legend.title = element_text(size = 5), axis.title = element_text(size = 7),
+        strip.text = element_text(size = 5), strip.background = element_blank(), legend.text = element_text(size = 5))
+
+ggsave('difference_gr_treatments_family6.pdf', difference_gr_treatments_family,
+       path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
+       width = 180,
+       height = 160,
+       units = 'mm')
 
 
 ## Difference between growth rates at different treatments at order taxonomic rank (figure S7) -----
-effects_difference_order <- reg_all_slopes_chosen_silva_tax_filt |> 
+effects_difference_order <- reg_all_slopes_chosen_silva_tax |> 
   distinct(treatment, season, asv_num, domain, phylum, class, order, genus, asv_num, family, .keep_all = TRUE) |>
   group_by(treatment, season, domain, phylum, class, order) |>
   dplyr::summarise(slope_chosen_days_mean = mean(slope_chosen_days),
@@ -2882,20 +2906,21 @@ difference_gr_treatments_order <-
   group_by(order, difference) |>
   mutate(counts = n()) |>
   ungroup() |>
-  ggplot(aes(season, effects, color = difference))+ 
-  geom_point(aes(color = difference, size = difference), alpha = 1)+
-  scale_y_discrete(labels = effects_labels3)+
+  ggplot(aes(season, effects))+ 
+  geom_tile(aes(fill = difference), alpha = 1)+
+  scale_y_discrete(labels = effects_labels2)+
   scale_size(range = c(0, 10), name ="Growth rate difference\n between treatments")+
-  scale_colour_gradientn(colours = palete_gradient_cb)+
+  scale_fill_gradientn(colours = palete_gradient_cb)+
+  #facet_grid(vars(family_asv_num))+
   facet_wrap(vars(order_f))+
-  labs(y = 'Treatments growth rates differences', x = 'Season', color = '')+
+  labs(y = 'Treatments growth rates differences', x = 'Season', fill = '')+
   theme_bw()+
   theme(legend.position = 'right', panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.text.x = element_text(angle = 60, size = 5, hjust = 1), 
-        axis.text.y = element_text(size = 5), legend.title = element_text(size = 7), axis.title = element_text(size = 7),
-        strip.text = element_text(size = 7), strip.background = element_blank(), legend.text = element_text(size = 5))
+        axis.text.y = element_text(size = 5), legend.title = element_text(size = 5), axis.title = element_text(size = 7),
+        strip.text = element_text(size = 5), strip.background = element_blank(), legend.text = element_text(size = 5))
 
-ggsave('difference_gr_treatments_order6.pdf', difference_gr_treatments_order,
+ggsave('difference_gr_treatments_order7.pdf', difference_gr_treatments_order,
        path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
        width = 180,
        height = 160,
@@ -2923,6 +2948,15 @@ miau_asv_tab_insitu <- miau_asv_tab |>
                             sample_code == 'x256' ~ 'Summer',
                             sample_code == 'x257' ~ 'Fall')) |>
   dplyr::select(-sample_code)
+
+##reads per sample 
+# miau_asv_tab_insitu_t <- miau_asv_tab_insitu |>
+#   t() |>
+#   as_tibble()
+# 
+# miau_asv_tab_insitu_t[-1,] |>
+#   dplyr::mutate(across(c(V1, V2, V3, V4), as.numeric))|>
+#   colSums()
 
 miau_asv_tab_insitu_season <- miau_asv_tab_insitu$season
 
@@ -3104,36 +3138,12 @@ total_responding_asvs_sample  <-  data_for_exclusive_asvs |>
   mutate(num_responding_asv = as.numeric(num_responding_asv)) |>
   as_tibble()
 
-excl_cd_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Winter')
-excl_cd_sp <-   exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Spring')
-excl_cd_su <-   exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Summer')
-excl_cd_f <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CD Fall')
-excl_cl_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Winter')
-excl_cl_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Spring')
-excl_cl_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Summer')
-excl_cl_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'CL Fall')
-excl_PD_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Winter')
-excl_PD_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Spring')
-excl_PD_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Summer')
-excl_PD_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PD Fall')
-excl_PL_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Winter')
-excl_PL_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Spring')
-excl_PL_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Summer')
-excl_PL_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'PL Fall')
-excl_DL_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Winter')
-excl_DL_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Spring')
-excl_DL_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Summer')
-excl_DL_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'DL Fall')
-excl_VL_w <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Winter')
-excl_VL_sp <- exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Spring')
-excl_VL_su <-  exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Summer')
-excl_VL_f <- exclusive.asvs(data_for_exclusive_asvs, sample = 'VL Fall')
+exclusive_asvs_dataset <- list()
+for(i in unique(data_for_exclusive_asvs$seas_treat)) {
+  exclusive_asvs_dataset[[i]] <- exclusive.asvs(data_for_exclusive_asvs, sample = i)
+}
 
-exclusive_asvs_dataset <-  bind_rows(excl_cd_w ,   excl_cd_sp ,   excl_cd_su ,   excl_cd_f ,   excl_cl_w , 
-                                     excl_cl_sp ,   excl_cl_su ,   excl_cl_f ,   excl_PD_w ,   excl_PD_sp ,
-                                     excl_PD_su ,   excl_PD_f ,   excl_PL_w,   excl_PL_sp ,   excl_PL_su,
-                                     excl_PL_f ,   excl_DL_w,   excl_DL_sp ,   excl_DL_su,   excl_DL_f , 
-                                     excl_VL_w ,   excl_VL_sp ,   excl_VL_su,   excl_VL_f) |>
+exclusive_asvs_dataset <-  bind_rows(exclusive_asvs_dataset) |>
   group_by(seas_treat) |>
   dplyr::summarize(number_exclusive_asvs = n()) |>
   separate(seas_treat, ' ', into = c('Treatment', 'Season'), remove = F) |>
@@ -3272,384 +3282,12 @@ num_asv_seas_treat <- data_for_common_asvs |>
   as_tibble()
 ## Calculating nº of common ASVs between treatments and seasons------
 ##between treatments from the same season
-CD_CD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CD Spring')      
-CD_CD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CD Summer')      
-CD_CD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CD Fall')  
-CD_CD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CD Summer') 
-CD_CD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CD Fall') 
-CD_CD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'CD Fall') 
+common_asvs_dataset <- list()
+for(i in unique(data_for_common_asvs$seas_treat)) {
+  common_asvs_dataset[[i]] <- common.asvs(data_for_common_asvs, sample1 = i, sample2 = i)
+}
 
-CL_CL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CL Spring')      
-CL_CL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CL Summer')      
-CL_CL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CL Fall')  
-CL_CL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CL Summer') 
-CL_CL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CL Fall') 
-CL_CL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'CL Fall') 
-
-PL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PL Spring')      
-PL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PL Summer')      
-PL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PL Fall')  
-PL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PL Summer') 
-PL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PL Fall') 
-PL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'PL Fall') 
-
-PD_PD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PD Spring')      
-PD_PD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PD Summer')      
-PD_PD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PD Fall')  
-PD_PD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PD Summer') 
-PD_PD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PD Fall') 
-PD_PD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'PD Fall')
-
-DL_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'DL Spring')      
-DL_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'DL Summer')      
-DL_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'DL Fall')  
-DL_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'DL Summer') 
-DL_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'DL Fall') 
-DL_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'DL Fall')
-
-VL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'VL Spring')      
-VL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'VL Summer')      
-VL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'VL Fall')  
-VL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'VL Summer') 
-VL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'VL Fall') 
-VL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'VL Fall')
-
-##Between treatments
-###CD_CL
-CD_CL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Winter')      
-CD_CL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CL Spring')      
-CD_CL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'CL Summer')  
-CD_CL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Fall', sample2 = 'CL Fall') 
-CD_CL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Spring') 
-CD_CL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CD Spring') 
-CD_CL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Summer') 
-CD_CL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CD Summer') 
-CD_CL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'CL Fall') 
-CD_CL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'CD Fall') 
-CD_CL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CL Summer') 
-CD_CL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CD Summer') 
-CD_CL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'CL Fall') 
-CD_CL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'CD Fall') 
-CD_CL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'CL Fall') 
-CD_CL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'CD Fall') 
-
-##CD_PL
-CD_PD_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Winter')      
-CD_PD_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Spring')      
-CD_PD_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'CL Summer')  
-CD_PD_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'CL Fall') 
-CD_PD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Spring') 
-CD_PD_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Spring') 
-CD_PD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Summer') 
-CD_PD_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Summer') 
-CD_PD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Fall') 
-CD_PD_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Fall') 
-CD_PD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Summer') 
-CD_PD_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Summer') 
-CD_PD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Fall') 
-CD_PD_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Fall') 
-CD_PD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'CL Fall') 
-CD_PD_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PD Fall')
-
-##CD_PL
-CD_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Winter')      
-CD_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Spring')      
-CD_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Summer')  
-CD_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Fall', sample2 = 'CL Fall') 
-CD_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Spring') 
-CD_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Spring') 
-CD_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Summer') 
-CD_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Summer') 
-CD_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Fall') 
-CD_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Fall') 
-CD_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Summer') 
-CD_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Summer') 
-CD_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Fall') 
-CD_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Fall') 
-CD_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Fall') 
-CD_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Fall') 
-
-##CD_DL
-CD_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Winter')      
-CD_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'DL Spring')      
-CD_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'DL Summer')  
-CD_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Fall', sample2 = 'DL Fall') 
-CD_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Spring') 
-CD_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CD Spring') 
-CD_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Summer') 
-CD_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CD Summer') 
-CD_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'DL Fall') 
-CD_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CD Fall') 
-CD_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'DL Summer') 
-CD_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CD Summer') 
-CD_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'DL Fall') 
-CD_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CD Fall') 
-CD_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'DL Fall') 
-CD_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'CD Fall') 
-
-##CD_VL (16)
-CD_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Winter')      
-CD_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'VL Spring')      
-CD_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'VL Summer')  
-CD_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Fall', sample2 = 'VL Fall') 
-CD_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Spring') 
-CD_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CD Spring') 
-CD_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Summer') 
-CD_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CD Summer') 
-CD_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Winter', sample2 = 'VL Fall') 
-CD_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CD Fall') 
-CD_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'VL Summer') 
-CD_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CD Summer') 
-CD_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Spring', sample2 = 'VL Fall') 
-CD_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CD Fall') 
-CD_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CD Summer', sample2 = 'VL Fall') 
-CD_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'CD Fall') 
-
-##CL_PL (16)
-CL_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Winter')      
-CL_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Spring')      
-CL_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Summer')  
-CL_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'PL Fall') 
-CL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Spring') 
-CL_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Spring') 
-CL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Summer') 
-CL_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Summer') 
-CL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Fall') 
-CL_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Fall') 
-CL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Summer') 
-CL_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Summer') 
-CL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Fall') 
-CL_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Fall') 
-CL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Fall') 
-CL_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Fall') 
-
-##CL_PD (16)
-CL_PD_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Winter')      
-CL_PD_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Spring')      
-CL_PD_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PD Summer')  
-CL_PD_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'PD Fall') 
-CL_PD_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Spring') 
-CL_PD_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Spring') 
-CL_PD_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Summer') 
-CL_PD_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Summer') 
-CL_PD_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PD Fall') 
-CL_PD_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'CL Fall') 
-CL_PD_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Summer') 
-CL_PD_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Summer') 
-CL_PD_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PD Fall') 
-CL_PD_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'CL Fall') 
-CL_PD_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PD Fall') 
-CL_PD_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'CL Fall') 
-
-##CL_PL (16)
-CL_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Winter')      
-CL_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Spring')      
-CL_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Summer')  
-CL_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'PL Fall') 
-CL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Spring') 
-CL_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Spring') 
-CL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Summer') 
-CL_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Summer') 
-CL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'PL Fall') 
-CL_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'CL Fall') 
-CL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Summer') 
-CL_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Summer') 
-CL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'PL Fall') 
-CL_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'CL Fall') 
-CL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'PL Fall') 
-CL_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'CL Fall') 
-
-##CL_DL (16)
-CL_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Winter')      
-CL_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Spring')      
-CL_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Summer')  
-CL_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'DL Fall') 
-CL_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Spring') 
-CL_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Spring') 
-CL_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Summer') 
-CL_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Summer') 
-CL_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Fall') 
-CL_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Fall') 
-CL_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Summer') 
-CL_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Summer') 
-CL_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Fall') 
-CL_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Fall') 
-CL_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Fall') 
-CL_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'CL Fall') 
-
-##CL_DL (16)
-CL_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Winter')      
-CL_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Spring')      
-CL_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Summer')  
-CL_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'DL Fall') 
-CL_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Spring') 
-CL_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Spring') 
-CL_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Summer') 
-CL_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Summer') 
-CL_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'DL Fall') 
-CL_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'CL Fall') 
-CL_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Summer') 
-CL_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Summer') 
-CL_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'DL Fall') 
-CL_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'CL Fall') 
-CL_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'DL Fall') 
-CL_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'CL Fall') 
-
-##CL_VL (16)
-CL_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Winter')      
-CL_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'VL Spring')      
-CL_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'VL Summer')  
-CL_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Fall', sample2 = 'VL Fall') 
-CL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Spring') 
-CL_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CL Spring') 
-CL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Summer') 
-CL_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CL Summer') 
-CL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Winter', sample2 = 'VL Fall') 
-CL_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'CL Fall') 
-CL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'VL Summer') 
-CL_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CL Summer') 
-CL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Spring', sample2 = 'VL Fall') 
-CL_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'CL Fall') 
-CL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'CL Summer', sample2 = 'VL Fall') 
-CL_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'CL Fall')
-
-##PD_PL (16)
-PD_PL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Winter')      
-PD_PL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PL Spring')      
-PD_PL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'PL Summer')  
-PD_PL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'PL Fall') 
-PD_PL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Spring') 
-PD_PL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PD Spring') 
-PD_PL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Summer') 
-PD_PL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PD Summer') 
-PD_PL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'PL Fall') 
-PD_PL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'PD Fall') 
-PD_PL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PL Summer') 
-PD_PL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PD Summer') 
-PD_PL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'PL Fall') 
-PD_PL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'PD Fall') 
-PD_PL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'PL Fall') 
-PD_PL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'PD Fall') 
-
-##PD_DL (16)
-PD_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Winter')      
-PD_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'DL Spring')      
-PD_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'DL Summer')  
-PD_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'DL Fall') 
-PD_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Spring') 
-PD_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PD Spring') 
-PD_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Summer') 
-PD_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PD Summer') 
-PD_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'DL Fall') 
-PD_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PD Fall') 
-PD_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'DL Summer') 
-PD_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PD Summer') 
-PD_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'DL Fall') 
-PD_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PD Fall') 
-PD_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'DL Fall') 
-PD_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'PD Fall') 
-
-##PD_VL (16)
-PD_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Winter')      
-PD_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'VL Spring')      
-PD_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'VL Summer')  
-PD_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Fall', sample2 = 'VL Fall') 
-PD_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Spring') 
-PD_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PD Spring') 
-PD_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Summer') 
-PD_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PD Summer') 
-PD_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Winter', sample2 = 'VL Fall') 
-PD_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PD Fall') 
-PD_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'VL Summer') 
-PD_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PD Summer') 
-PD_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Spring', sample2 = 'VL Fall') 
-PD_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PD Fall') 
-PD_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PD Summer', sample2 = 'VL Fall') 
-PD_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'PD Fall') 
-
-##PL_DL (16)
-PL_DL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Winter')      
-PL_DL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'DL Spring')      
-PL_DL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'DL Summer')  
-PL_DL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Fall', sample2 = 'DL Fall') 
-PL_DL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Spring') 
-PL_DL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PL Spring') 
-PL_DL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Summer') 
-PL_DL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PL Summer') 
-PL_DL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'DL Fall') 
-PL_DL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'PL Fall') 
-PL_DL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'DL Summer') 
-PL_DL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PL Summer') 
-PL_DL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'DL Fall') 
-PL_DL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'PL Fall') 
-PL_DL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'DL Fall') 
-PL_DL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'PL Fall') 
-
-##PL_VL (16)
-PL_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Winter')      
-PL_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'VL Spring')      
-PL_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'VL Summer')  
-PL_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Fall', sample2 = 'VL Fall') 
-PL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Spring') 
-PL_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PL Spring') 
-PL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Summer') 
-PL_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PL Summer') 
-PL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Winter', sample2 = 'VL Fall') 
-PL_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'PL Fall') 
-PL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'VL Summer') 
-PL_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PL Summer') 
-PL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Spring', sample2 = 'VL Fall') 
-PL_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'PL Fall') 
-PL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'PL Summer', sample2 = 'VL Fall') 
-PL_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'PL Fall') 
-
-##DL_VL
-DL_VL_W <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Winter')      
-DL_VL_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'VL Spring')      
-DL_VL_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'VL Summer')  
-DL_VL_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Fall', sample2 = 'VL Fall') 
-DL_VL_W_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Spring') 
-DL_VL_Sp_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'DL Spring') 
-DL_VL_W_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Summer') 
-DL_VL_Su_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'DL Summer') 
-DL_VL_W_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Winter', sample2 = 'VL Fall') 
-DL_VL_F_W <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Winter', sample2 = 'DL Fall') 
-DL_VL_Sp_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'VL Summer') 
-DL_VL_Su_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'DL Summer') 
-DL_VL_Sp_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Spring', sample2 = 'VL Fall') 
-DL_VL_F_Sp <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Spring', sample2 = 'DL Fall') 
-DL_VL_Su_F <- common.asvs(data = data_for_common_asvs, sample1 = 'DL Summer', sample2 = 'VL Fall') 
-DL_VL_F_Su <- common.asvs(data = data_for_common_asvs, sample1 = 'VL Summer', sample2 = 'DL Fall') 
-
-common_asv_sum <- 
-  bind_rows(CD_CD_W_Sp, CD_CD_W_Su, CD_CD_W_F, CD_CD_Sp_Su, CD_CD_Sp_F, CD_CD_Su_F,
-            CL_CL_W_Sp, CL_CL_W_Su, CL_CL_W_F, CL_CL_Sp_Su, CL_CL_Sp_F, CL_CL_Su_F,
-            PL_PL_W_Sp, PL_PL_W_Su, PL_PL_W_F, PL_PL_Sp_Su, PL_PL_Sp_F, PL_PL_Su_F,
-            PD_PD_W_Sp, PD_PD_W_Su, PD_PD_W_F, PD_PD_Sp_Su, PD_PD_Sp_F, PD_PD_Su_F,
-            DL_DL_W_Sp, DL_DL_W_Su, DL_DL_W_F, DL_DL_Sp_Su, DL_DL_Sp_F, DL_DL_Su_F,
-            VL_VL_W_Sp, VL_VL_W_Su, VL_VL_W_F, VL_VL_Sp_Su, VL_VL_Sp_F, VL_VL_Su_F,
-            CD_CL_W, CD_CL_Sp, CD_CL_Su, CD_CL_F, 
-            CD_CL_W_Sp, CD_CL_Sp_W, CD_CL_W_Su, CD_CL_Su_W, CD_CL_W_F, CD_CL_F_W, CD_CL_Sp_Su , CD_CL_Su_Sp, CD_CL_Sp_F, CD_CL_F_Sp, CD_CL_Su_F, CD_CL_F_Su, 
-            CD_PD_W, CD_PD_Sp, CD_PD_Su, CD_PD_F,
-            CD_PD_W_Sp, CD_PD_Sp_W, CD_PD_W_Su, CD_PD_Su_W, CD_PD_W_F, CD_PD_F_W, CD_PD_Sp_Su , CD_PD_Su_Sp, CD_PD_Sp_F, CD_PD_F_Sp, CD_PD_Su_F, CD_PD_F_Su,
-            CD_PL_W, CD_PL_Sp, CD_PL_Su, CD_PL_F,
-            CD_PL_W_Sp, CD_PL_Sp_W, CD_PL_W_Su, CD_PL_Su_W, CD_PL_W_F, CD_PL_F_W, CD_PL_Sp_Su , CD_PL_Su_Sp, CD_PL_Sp_F, CD_PL_F_Sp, CD_PL_Su_F, CD_PL_F_Su,
-            CD_DL_W, CD_DL_Sp, CD_DL_Su, CD_DL_F,
-            CD_DL_W_Sp, CD_DL_Sp_W, CD_DL_W_Su, CD_DL_Su_W, CD_DL_W_F, CD_DL_F_W, CD_DL_Sp_Su , CD_DL_Su_Sp, CD_DL_Sp_F, CD_DL_F_Sp, CD_DL_Su_F, CD_DL_F_Su, 
-            CD_VL_Sp, CD_VL_Su, CD_VL_F,
-            CD_VL_W_Sp, CD_VL_Sp_W, CD_VL_W_Su, CD_VL_Su_W, CD_VL_W_F, CD_VL_F_W, CD_VL_Sp_Su , CD_VL_Su_Sp, CD_VL_Sp_F, CD_VL_F_Sp, CD_VL_Su_F, CD_VL_F_Su, 
-            PD_PL_W, PD_PL_Sp, PD_PL_Su, PD_PL_F,
-            PD_PL_W_Sp, PD_PL_Sp_W, PD_PL_W_Su, PD_PL_Su_W, PD_PL_W_F, PD_PL_F_W, PD_PL_Sp_Su , PD_PL_Su_Sp, PD_PL_Sp_F, PD_PL_F_Sp, PD_PL_Su_F, PD_PL_F_Su,
-            PD_DL_W, PD_DL_Sp, PD_DL_Su, PD_DL_F,
-            PD_DL_W_Sp, PD_DL_Sp_W, PD_DL_W_Su, PD_DL_Su_W, PD_DL_W_F, PD_DL_F_W, PD_DL_Sp_Su , PD_DL_Su_Sp, PD_DL_Sp_F, PD_DL_F_Sp, PD_DL_Su_F, PD_DL_F_Su, 
-            PD_VL_Sp, PD_VL_Su, PD_VL_F,
-            PD_VL_W_Sp, PD_VL_Sp_W, PD_VL_W_Su, PD_VL_Su_W, PD_VL_W_F, PD_VL_F_W, PD_VL_Sp_Su , PD_VL_Su_Sp, PD_VL_Sp_F, PD_VL_F_Sp, PD_VL_Su_F, PD_VL_F_Su,                 
-            PL_DL_W, PL_DL_Sp, PL_DL_Su, PL_DL_F,
-            PL_DL_W_Sp, PL_DL_Sp_W, PL_DL_W_Su, PL_DL_Su_W, PL_DL_W_F, PL_DL_F_W, PL_DL_Sp_Su , PL_DL_Su_Sp, PL_DL_Sp_F, PL_DL_F_Sp, PL_DL_Su_F, PL_DL_F_Su, 
-            PL_VL_Sp, PL_VL_Su, PL_VL_F,
-            PL_VL_W_Sp, PL_VL_Sp_W, PL_VL_W_Su, PL_VL_Su_W, PL_VL_W_F, PL_VL_F_W, PL_VL_Sp_Su , PL_VL_Su_Sp, PL_VL_Sp_F, PL_VL_F_Sp, PL_VL_Su_F, PL_VL_F_Su,                 
-            DL_VL_Sp, DL_VL_Su, DL_VL_F,
-            DL_VL_W_Sp, DL_VL_Sp_W, DL_VL_W_Su, DL_VL_Su_W, DL_VL_W_F, DL_VL_F_W, DL_VL_Sp_Su , DL_VL_Su_Sp, DL_VL_Sp_F, DL_VL_F_Sp, DL_VL_Su_F, DL_VL_F_Su) |>
+common_asv_sum <- bind_rows(common_asvs_dataset) |>
   separate(seas_treat.x, '_', into = c('from', 'to')) |>
   left_join(num_asv_seas_treat, by = c('from' = 'seas_treat')) |>
   left_join(num_asv_seas_treat, by = c('to' = 'seas_treat')) |>
@@ -4657,6 +4295,8 @@ flat_cor_mat <- function(cor_r, cor_p){
 }
 
 cor_pearson <- rcorr(as.matrix(corr_dapis_asv_gr[,3:16]), type = 'pearson')
+
+View(cor_pearson$n)
 
 my_cor_matrix <- flat_cor_mat(cor_pearson$r, cor_pearson$P)
 head(my_cor_matrix)
