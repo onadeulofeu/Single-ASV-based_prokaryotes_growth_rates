@@ -4331,5 +4331,3 @@ my_correlation <- my_cor_matrix_pear |>
 colnames(my_correlation) = c('Mean ASV-based growth rates', 'Abundance-based growth rates', 'Correlation', 'p-value')
 
 #write.csv2(my_correlation, file = 'results/tables/correlations_card-fish_avs__all_gr.csv')
-
-
