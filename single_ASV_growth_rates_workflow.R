@@ -583,7 +583,7 @@ shapiro.test(x = aov_residuals )#From the output, the p-value > 0.05 implying th
 ##p-value < 2.2e-16 NO és normal 
 #if not normal: #non parametric test
 kruskal.test(slope_chosen_days ~ treatment, data = reg_all_slopes_chosen_silva_tax_1perc) #
-#si sale p<0.05 hago dunn test para ver cuales son significativamente distintos
+#if p<0.05 use dunn test to see which are significatively different
 dunnTest(slope_chosen_days ~ treatment, data = reg_all_slopes_chosen_silva_tax_1perc, ##test the d
          method= 'bonferroni')
 results<-dunnTest(slope_chosen_days ~ treatment, data = reg_all_slopes_chosen_silva_tax_1perc,
