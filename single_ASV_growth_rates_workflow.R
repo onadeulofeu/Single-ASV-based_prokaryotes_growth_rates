@@ -99,7 +99,7 @@ source("src/calculate_exclusive_asv_condition.R") ##calculate unique responsive 
 
 
 # import data ----
-rem_fc <- readRDS("./data/intermediate_files/remei_phyloseq_silva_fc.rds") #phyloseq object with otu_table, sample data and taxonomu
+rem_fc <- readRDS("data/remei_phyloseq_silva_fc.rds") #phyloseq object with otu_table, sample data and taxonomu
 #sample data must have total abundance data to be able to calculate pseudoabundances
 
 #palettes used (colors and shapes) ----
@@ -156,6 +156,7 @@ rem_fc@sam_data |>
 ##extract some information from our dataset
 rem_fc |> 
   ntaxa() ##5670 asv silva // gtbd 4599
+
 rem_fc |> 
   nsamples() ##312 samples
 
@@ -418,8 +419,7 @@ ggsave('example_gr_calculation3.pdf', example_gr_calculation ,
        units = 'mm')
 
 
-
-# ----- 5. VIOLIN PLOTS SINGLE-ASV BASED GROWTH RATES AND ABUNDANCE-BASED GROWTH RATES ################ ----------------
+# ----- 5. VIOLIN PLOTS SINGLE-ASV BASED GROWTH RATES AND ABUNDANCE-BASED GROWTH RATES ################ ------------------
 ## import data
 reg_all_slopes_chosen_silva_tax <- read.delim2('data/intermediate_files/reg_all_slopes_chosen_silva_tax_corrected_asv_num_v1.csv', sep = ',')|>
   as_tibble() |>
@@ -583,7 +583,7 @@ shapiro.test(x = aov_residuals )#From the output, the p-value > 0.05 implying th
 ##p-value < 2.2e-16 NO és normal 
 #if not normal: #non parametric test
 kruskal.test(slope_chosen_days ~ treatment, data = reg_all_slopes_chosen_silva_tax_1perc) #
-#if p<0.05 use dunn test to see which are significatively different
+#si sale p<0.05 hago dunn test para ver cuales son significativamente distintos
 dunnTest(slope_chosen_days ~ treatment, data = reg_all_slopes_chosen_silva_tax_1perc, ##test the d
          method= 'bonferroni')
 results<-dunnTest(slope_chosen_days ~ treatment, data = reg_all_slopes_chosen_silva_tax_1perc,
@@ -1098,7 +1098,7 @@ cor_pear <- rcorr(as.matrix(mean_gr_asv_motus_dapis[,c(3,7)]), type = 'pearson')
 #        width = 88,
 #        units = 'mm')
 
-## Panel construction figure 2 ----
+## Panel construction figure 1 ----
 gr_asv_dapis <- grid.arrange(treat, gr_dapis_treat, seas, gr_dapis_seas, gr_dapis_asv, gr_asv_mOTUs)
 # 
 ggsave('GR_asv_dapis_stat_ed4.pdf', gr_asv_dapis, path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/manuscript_figures/",
@@ -1597,7 +1597,7 @@ mean_gr_ranks <- reg_all_slopes_chosen_silva_tax |>
 # units = 'mm')
 
 
-## Figure 3 creating panel design------
+## Figure 2 creating panel design------
 distribution_gr_plots_ridge <- multi_panel_figure(columns = 6, rows = 10, width = 188, height = 250, 
                                                   column_spacing = 0.2, unit = 'mm', row_spacing = 0.6,
                                                   panel_label_type = 'upper-alpha')
@@ -1685,7 +1685,7 @@ ggsave('distribution_gr_plots_ridge_family_treatment_divided.pdf', ridge_family_
        height = 150,
        units = 'mm')
 
-## Distribution plots for Proteobacteria and Bacteroidota separated (figure 4 and S4) ----
+## Distribution plots for Proteobacteria and Bacteroidota separated (figure 3 and S4) ----
 ridge_proteo <- 
   growthrates.distribution.tax.rank.ridges.divided(
     data = reg_all_slopes_chosen_silva_tax_asv_reorder, 
@@ -1722,7 +1722,7 @@ ridge_bacterio <- growthrates.distribution.tax.rank.ridges.divided(
 #        height = 180,
 #        units = 'mm')
 
-## Distributions for the whole growth rates calculated (figure 8) ----
+## Distributions for the whole growth rates calculated (figure 7) ----
 
 counts_treatments <-   reg_all_slopes_chosen_silva_tax |>
   group_by(domain) |>
@@ -1854,716 +1854,6 @@ distribution_gr_domains_all  %<>%
 #        height = 100,
 #        units = 'mm')
 
-## Distribution for maximal growth rates only----
-## Distribution plots at different taxonomic ranks ----
-reg_all_slopes_chosen_silva_tax_max <- reg_all_slopes_chosen_silva_tax  |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  mutate(phylum_f = fct_rev(fct_infreq(phylum_f)))
-
-counts <-   reg_all_slopes_chosen_silva_tax |> #number of growth rates calculated by phylum
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() >= 2) |>
-  mutate(counts = n()) |>
-  as_tibble() |>
-  group_by(phylum_f, counts) |>
-  dplyr::summarize() |>
-  as_tibble()
-
-ridge_ph <- # distribution plot at phylum taxonomic rank
-  reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() >= 50) |>
-  mutate(counts = paste('n = ', n())) |> #
-  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f,  group = phylum_f, label = counts))+
-  geom_density_ridges(alpha = 0.8, panel_scaling = TRUE, scale = 1,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_phylums_assigned)+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  coord_cartesian(clip = "off") +
-  geom_text(nudge_x = 8.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Phylum')+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0.5, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_cl <- reg_all_slopes_chosen_silva_tax |> # distribution plot at class taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() >= 50) |>
-  group_by(phylum_f) |>
-  mutate(counts = paste('n = ', n())) |> #
-  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = phylum_f, group = class_f), scale = 1, alpha = 0.7,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_phylums_assigned)+
-  labs(y = 'Class', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Class')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), 
-        axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        axis.text.y = element_text(size = 0),
-        axis.title.y = element_blank(), 
-        plot.margin= unit(c(0.2, 0.5, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_o <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() >= 50) |>
-  ungroup() |>
-  group_by(phylum_f) |>
-  mutate(counts = paste('n = ', n())) |> #
-  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = phylum_f, group = order_f), scale = 0.8, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_phylums_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Order')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
-        plot.margin= unit(c(0.2, 0.5, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() >= 50) |>
-  group_by(phylum_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(fct_infreq(phylum_f)), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = phylum_f, group = family_f), scale = 0.8, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_phylums_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-## reorder ASVs by phylum
-reg_all_slopes_chosen_silva_tax_asv_reorder <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  mutate(counts = paste('n = ', n())) |> #
-  ungroup()
-
-reg_all_slopes_chosen_silva_tax_asv_reorder$phylum_f <- reg_all_slopes_chosen_silva_tax_asv_reorder$phylum_f |>
-  factor( levels = c("Bacteroidota", "Proteobacteria", "Actinobacteriota",   "Cyanobacteria", "Planctomycetota",
-                     "Verrucomicrobiota",  "Firmicutes", "Crenarchaeota", "Bdellovibrionota", "Campilobacterota", 
-                     "Acidobacteriota",
-                     "Nitrospinota",  "Nitrospirota",  "Myxococcota", "Desulfobacterota",
-                     "Deinococcota" , "Chloroflexi" , "Fusobacteriota", 
-                     "Spirochaetota",  "Abditibacteriota", "Latescibacterota",
-                     "Methylomirabilota", "Halanaerobiaeota", "Sumerlaeota", "Calditrichota", "Gemmatimonadota"), 
-          ordered = TRUE)
-
-ridge_a <- reg_all_slopes_chosen_silva_tax_asv_reorder |> # distribution plot at ASV taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() >= 50) |>
-  ggplot(aes(y = fct_rev(phylum_f), x = slope_chosen_days, label = counts))+
-  geom_density_ridges(aes(fill = phylum_f, group = asv_f), scale = 0.6, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_phylums_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'ASV')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.2, nudge_y = 0.35, check_overlap = TRUE, size = 3)+
-  coord_cartesian(clip = "off") +
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), 
-        axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 0),
-        plot.margin= unit(c(0.2, 0.5, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-## Percentage of significant growth rates calculated by Phylum ------ 
-perc_gr_phylum <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() > 2) |>
-  group_by(phylum_f, slope_chosen_days) |> 
-  dplyr::summarize(n = n()) |>
-  group_by(phylum_f) |>
-  dplyr::summarize(n = n()) |>
-  mutate(sum = sum(n),
-         perc = n/sum) |>
-  ungroup() |>
-  ggplot(aes(sum, perc, fill = phylum_f))+
-  geom_col(aes(fill = fct_reorder(phylum_f, perc, .desc = TRUE)))+ 
-  scale_y_continuous(labels = percent_format())+
-  labs(y = 'Percentage of maximal significant growth rates calculated per Phylum', fill = 'Phylum')+
-  scale_fill_manual(values = palette_phylums_assigned)+
-  coord_flip()+
-  theme_bw()+
-  theme(axis.text.y = element_blank(), panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank(), aspect.ratio = 2/10, panel.border = element_blank(),
-        axis.ticks = element_blank(), legend.position = 'none', axis.text.x = element_text(size = 6),
-        axis.title.y = element_blank(), axis.text = element_text(size = 6), text = element_text(size = 6),
-        plot.margin= unit(c(1, 0.5, 1, 0.5), "lines"))
-
-## Percentage of significant growth rates calculated at different taxonomic ranks ----
-x <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() > 2) |>
-  dplyr::summarize(n = n()) |>
-  dplyr::summarize(n = sum(n))
-
-gr_asv_perc <- reg_all_slopes_chosen_silva_tax_filt |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(asv_f) |>
-  dplyr::filter(n() > 2) |>
-  dplyr::summarize(n = n()) |>
-  mutate(sum = sum(n),
-         asv_gr_perc = sum/x) |>
-  dplyr::select(asv_gr_perc) |>
-  unique() |>
-  as_tibble()
-
-gr_f_perc <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(family) |>
-  dplyr::filter(n() > 2) |>
-  dplyr::summarize(n = n()) |>
-  mutate(sum = sum(n),
-         f_gr_perc = sum/x) |>
-  dplyr::select(f_gr_perc) |>
-  unique() |>
-  as_tibble()
-
-gr_o_perc <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(order) |>
-  dplyr::filter(n() > 2) |>
-  dplyr::summarize(n = n()) |>
-  mutate(sum = sum(n),
-         order_gr_perc = sum/x) |>
-  dplyr::select(order_gr_perc) |>
-  unique() |>
-  as_tibble()
-
-gr_c_perc <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(class) |>
-  dplyr::filter(n() > 2) |>
-  dplyr::summarize(n = n()) |>
-  mutate(sum = sum(n),
-         class_gr_perc = sum/x) |>
-  dplyr::select(class_gr_perc) |>
-  unique() |>
-  as_tibble()
-
-gr_p_perc <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum) |>
-  dplyr::filter(n() > 2) |>
-  dplyr::summarize(n = n()) |>
-  mutate(sum = sum(n),
-         phylum_gr_perc = sum/x) |>
-  dplyr::select(phylum_gr_perc) |>
-  unique() |>
-  as_tibble() 
-
-labels_perc_gr_rank <-  as_labeller(c(phylum_gr_perc = 'Phylum',
-                                      class_gr_perc = 'Class',
-                                      order_gr_perc = 'Order',
-                                      f_gr_perc = 'Family',
-                                      asv_gr_perc = 'ASV'))
-
-# gr_tax_ranks_perc <- cbind( gr_f_perc, gr_o_perc, gr_c_perc) |>
-#   as_tibble() |>
-#   pivot_longer(cols = 1:5) |>
-#   ggplot(aes(x = fct_rev(as_factor(name)), y = value$n, group = 1))+
-#   geom_point()+
-#   #coord_flip()+
-#   geom_line()+
-#   labs(y='Percentage', x = 'Growth rates distribution plotted\nat different taxonomic ranks')+
-#   scale_x_discrete(labels = labels_perc_gr_rank)+
-#   scale_y_continuous(labels = percent_format())+
-#   theme_bw()+
-#   theme(aspect.ratio = 3/10, panel.grid.minor = element_blank(),
-#         panel.grid.major = element_blank(),
-#         legend.position = 'none', axis.text.y = element_text(size = 6),
-#         axis.title.y = element_text(size = 6), text = element_text(size = 6),
-#         plot.margin= unit(c(1, 0.5, 1, 0.5), "lines"))
-
-## mean growth rates at different taxonomic levels ----
-labels_mean_rank <- as_labeller(c( mean_phylum = 'Phylum',
-                                   mean_class = 'Class',
-                                   mean_order = 'Order',
-                                   mean_family = 'Family',
-                                   mean_asv = 'ASV'))
-
-mean_gr_ranks_max <- reg_all_slopes_chosen_silva_tax |>
-  group_by(asv_num) |>
-  dplyr::filter(n() > 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(phylum_f) |>
-  dplyr::filter(n() > 2) |>
-  mutate(mean_phylum = mean(slope_chosen_days)) |>
-  ungroup() |>
-  group_by(class) |>
-  mutate(mean_class = mean(slope_chosen_days)) |>
-  ungroup() |>
-  group_by(order) |>
-  mutate(mean_order = mean(slope_chosen_days)) |>
-  ungroup() |>
-  group_by(family) |>
-  mutate(mean_family = mean(slope_chosen_days)) |>
-  ungroup() |>
-  group_by(asv_num) |>
-  mutate(mean_asv = mean(slope_chosen_days)) |>
-  dplyr::select(starts_with('mean'), 'asv_num', 'family', 'order', 'class', 'phylum_f') |>
-  pivot_longer(cols = starts_with('mean')) |>
-  group_by(phylum_f) |>
-  distinct(value, name, phylum_f) |>
-  ggplot(aes(as_factor(name), value))+
-  geom_point(aes(color = phylum_f), alpha = 0.6, 
-             position = position_jitter(0.3))+
-  geom_violin(alpha = 0.2, draw_quantiles = c(0.25, 0.75))+
-  stat_summary(fun = "mean",
-               geom = "crossbar", 
-               width = 0.6,
-               colour = "black")+
-  scale_color_manual(values = palette_phylums_assigned)+
-  labs(y = 'Mean growth rate\nat different\ntaxonomic ranks', x= 'Taxonomic rank', color = 'Phylum')+
-  scale_x_discrete(labels = labels_mean_rank)+
-  #coord_flip()+
-  theme_bw()+
-  theme(panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank(),
-        legend.position = 'none', axis.text.y = element_text(size = 6),
-        axis.title.y = element_text(size = 6), text = element_text(size = 6),
-        plot.margin= unit(c(1, 0.5, 1, 0.5), "lines"))
-# 
-# ggsave('mean_gr_ranks_ed.pdf', mean_gr_ranks,
-# path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-# width = 150,
-# height = 130,
-# units = 'mm')
-
-
-## Figure 3 creating panel design------
-distribution_gr_plots_ridge_max <- multi_panel_figure(columns = 5, rows = 1, width = 188, height = 150, 
-                                                  column_spacing = 0.2, unit = 'mm', row_spacing = 0.6,
-                                                  panel_label_type = 'upper-alpha')
-
-# distribution_gr_plots_ridge  %<>%
-#   fill_panel(perc_gr_phylum, column = 1, row = 1) %<>%
-#   fill_panel(gr_tax_ranks_perc, column = 1, row = 2) %<>%
-#   fill_panel(mean_gr_ranks, column = 1, row = 3) %<>%
-#   fill_panel(ridge_ph, column = 2:3, row = 1:3) %<>%
-#   fill_panel(ridge_cl, column = 4, row = 1:3) %<>%
-#   fill_panel(ridge_o, column = 5, row = 1:3) %<>%
-#   fill_panel(ridge_f, column = 6, row = 1:3) %<>%
-#   fill_panel(ridge_a, column = 7, row = 1:3)
-
-distribution_gr_plots_ridge_max  %<>%
-  # fill_panel(perc_gr_phylum, column = 1:2, row = 1) %<>%
-  # fill_panel(gr_tax_ranks_perc, column = 3:4, row = 1) %<>%
-  # fill_panel(mean_gr_ranks_max, column = 5:6, row = 1) %<>%
-  fill_panel(ridge_ph, column = 1:2, row = 1) %<>%
-  fill_panel(ridge_cl, column = 3, row = 1) %<>%
-  fill_panel(ridge_o, column = 4, row = 1) %<>%
-  fill_panel(ridge_f, column = 5, row = 1) #%<>%
-  # fill_panel(perc_gr_phylum, column = 1:2, row = 1) |>
-  # fill_panel(mean_gr_ranks_max, column = 4:5, row = 1)
-
-# save the graph
-ggsave('distribution_gr_plots_ridge_order_freq_perc_max_ed2.pdf', distribution_gr_plots_ridge_max,
-       path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-       width = 188,
-       height = 150,
-       units = 'mm')
-
-## exploration at family level maximal growth rates
-ridge_f <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 1, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ggsave('distribution_max_gr_family.pdf', ridge_f,
-       path = "~/Documentos/Doctorat/REMEI/results/figures/corrected_asv_num/",
-       width = 88,
-       height = 180,
-       units = 'mm')
-
-
-ridge_f_winter <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(season == 'Winter') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 0.8, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family Winter')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_spring <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(season == 'Spring') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 0.8, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family Spring')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_summer <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(season == 'Summer') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 0.8, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family Summer')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_fall <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(season == 'Fall') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = class_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 0.8, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family Fall')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ggarrange(ridge_f_winter, ridge_f_spring, ridge_f_summer, ridge_f_fall)
-
-### treatments ---
-ridge_f_treatments_cd <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(treatment == 'CD') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 1, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_treatments_cl <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(treatment == 'CL') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 1, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_treatments_pd <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(treatment == 'PD') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 1, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_treatments_pl <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(treatment == 'PL') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 1, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_treatments_dl <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(treatment == 'DL') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 1, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-ridge_f_treatments_vl <- reg_all_slopes_chosen_silva_tax |> # distribution plot at order taxonomic rank
-  group_by(asv_num) |>
-  dplyr::filter(n() >= 2) |>
-  ungroup() |>
-  slice_max(order_by = slope_chosen_days, n = 1, by = asv_num) |>
-  dplyr::filter(treatment == 'VL') |>
-  group_by(family_f) |>
-  dplyr::filter(n() >= 4) |>
-  group_by(family_f) |>
-  mutate(counts = paste('n = ', n())) |>
-  ungroup() |>
-  ggplot(aes(y = fct_rev(family_f), x = slope_chosen_days, fill = phylum_f, label = counts))+
-  geom_density_ridges(aes(fill = class_f, group = family_f), scale = 1, alpha = 0.6,
-                      jittered_points = TRUE,
-                      point_shape = 21, point_size = 0.2, point_alpha = 0.0,
-                      quantile_lines = TRUE,
-                      quantile_fun = mean)+
-  scale_fill_manual(values = palette_class_assigned)+
-  labs(y = '', fill= 'Phylum', x = expression("Growth rate (d"^"-1" *')'), title = 'Family')+
-  scale_x_continuous(limits = c(0,11), expand = c(0,0))+
-  geom_text(nudge_x = 7.8, nudge_y = 0.3, check_overlap = TRUE, size = 3)+
-  theme_bw()+
-  theme(legend.position = "none", strip.text.x = element_text(size = 6), axis.text.x = element_text(angle = 0, size = 6),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 6),
-        plot.margin= unit(c(0.2, 0, 0.2, 0.2), "lines"), panel.border = element_blank(), 
-        title = element_text(size = 8))
-
-grid.arrange(ridge_f_treatments_cd, ridge_f_treatments_cl,
-             ridge_f_treatments_pd, ridge_f_treatments_pl,
-             ridge_f_treatments_dl, ridge_f_treatments_vl)
-
-
-
-
 # ----- 7. GROWTH RATE TREATMENT RESPONSE ----------------
 ## labels----
 effects_labels2 <-  as_labeller(c(effect_top_down_virus = 'Top-down effect viruses (VL-DL)',
@@ -2595,7 +1885,7 @@ palete_gradient_cb2 <- c("#2e0030",
                          "#79c295",
                          "#009759")
 
-## Difference between growth rates at different treatments at ASV taxonomic rank (figure 5) -------
+## Difference between growth rates at different treatments at ASV taxonomic rank (figure 4) -------
 effects_difference_asv <- reg_all_slopes_chosen_silva_tax |> 
   distinct(treatment, season, asv_num, domain, phylum, class, order, genus, asv_num, family, .keep_all = TRUE) |>
   group_by(treatment, season, domain, phylum, class, order, family, asv_num) |>
@@ -2934,7 +2224,7 @@ palete_gradient <- c(
   "#003318") 
 
 
-## Richness at the natural insitu community (Figure 6A) ----
+## Richness at the natural insitu community (Figure 5) ----
 miau_asv_tab <- read_rds('../MIAU_seqs/MIAU_runs_seqtab_final.rds')  |>
   as_tibble(rownames = 'sample_code')
 
@@ -3002,30 +2292,28 @@ richness <- miau_asv_tab_insitu_filt_ed  |>
   rownames_to_column(var = 'season')
 
 ## Insitu richness plot----
-richness$miau_asv_tab_insitu_season <- factor(richness$miau_asv_tab_insitu_season, levels = c('Winter', 'Spring', 'Summer',  'Fall'))
-insitu_richness <- 
-  richness |>
-  ggplot(aes(miau_asv_tab_insitu_season, Observed))+
-  geom_col(aes(fill = miau_asv_tab_insitu_season), alpha = 0.9)+#
-  scale_fill_manual(values = palette_seasons_4)+
-  #geom_text(aes(label = (treatment), y = (1000)))+
-  coord_polar()+
-  labs(x = '', y = '')+#, title = 'T0'
-  annotate('text', x = 0, y = c(750 ,1000, 1300), label = c('750', '1000', '1300')) +
-  #annotate('segment', x = 0, xend = 0, y = 0, yend =5.5)+
-  scale_y_continuous(limits = c(0, 1350), breaks = c(750, 1000, 1300))+
-  theme_bw()+
-  theme(legend.position = 'none',
-        panel.border = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.text = element_blank(),
-        panel.grid.major.x = element_blank(),
-        text = element_text(size = 5),
-        plot.margin = margin(0,2,0,0, unit = 'cm' ))
+# richness$miau_asv_tab_insitu_season <- factor(richness$miau_asv_tab_insitu_season, levels = c('Winter', 'Spring', 'Summer',  'Fall'))
+# insitu_richness <- 
+#   richness |>
+#   ggplot(aes(miau_asv_tab_insitu_season, Observed))+
+#   geom_col(aes(fill = miau_asv_tab_insitu_season), alpha = 0.9)+#
+#   scale_fill_manual(values = palette_seasons_4)+
+#   #geom_text(aes(label = (treatment), y = (1000)))+
+#   coord_polar()+
+#   labs(x = '', y = '')+#, title = 'T0'
+#   annotate('text', x = 0, y = c(750 ,1000, 1300), label = c('750', '1000', '1300')) +
+#   #annotate('segment', x = 0, xend = 0, y = 0, yend =5.5)+
+#   scale_y_continuous(limits = c(0, 1350), breaks = c(750, 1000, 1300))+
+#   theme_bw()+
+#   theme(legend.position = 'none',
+#         panel.border = element_blank(),
+#         axis.ticks.y = element_blank(),
+#         axis.text = element_blank(),
+#         panel.grid.major.x = element_blank(),
+#         text = element_text(size = 5),
+#         plot.margin = margin(0,2,0,0, unit = 'cm' ))
 
-
-
-## Total responsive ASVs GR>1(day-1) (figure 6B) ----
+## Total responsive ASVs GR>1(day-1) (figure 5A) ----
 total_responsive_asvs <- reg_all_slopes_chosen_silva_tax |>
   filter(slope_chosen_days > 1) |>
   dplyr::select(treatment, season, asv_num) |> 
@@ -3037,43 +2325,90 @@ total_responsive_asvs <- reg_all_slopes_chosen_silva_tax |>
   as_tibble()
 
 ## Relative responsive ASVs (gr > 1) from total growing ASVs (gr > 0):
-total_growing_asvs <- reg_all_slopes_chosen_silva_tax |>
-  filter(slope_chosen_days > 0 &
-           pvalue_slope_chosen < 0.05) |>
-  dplyr::select(treatment, season, asv_num) |> #, slope_chosen_days, family_f
-  #filter(treatment %in% c('CD', 'CL', 'PD', 'PL')) |>
-  #dplyr::select(-slope_chosen_days, -family_f) |>
-  mutate(seas_treat = paste(treatment, season)) |>
-  group_by(seas_treat, asv_num) |> ##sembla que PD Winter está repetit al dataset original (trobar a on es duplica, té efecte aals gràfics?)
-  distinct(seas_treat, asv_num) |>
-  group_by(seas_treat) |>
-  dplyr::summarize(num_growing_asv = n()) |>
-  #mutate(num_responding_asv = as.numeric(num_responding_asv)) |>
-  as_tibble()
+# total_growing_asvs <- reg_all_slopes_chosen_silva_tax |>
+#   filter(slope_chosen_days > 0 &
+#            pvalue_slope_chosen < 0.05) |>
+#   dplyr::select(treatment, season, asv_num) |> #, slope_chosen_days, family_f
+#   #filter(treatment %in% c('CD', 'CL', 'PD', 'PL')) |>
+#   #dplyr::select(-slope_chosen_days, -family_f) |>
+#   mutate(seas_treat = paste(treatment, season)) |>
+#   group_by(seas_treat, asv_num) |> ##sembla que PD Winter está repetit al dataset original (trobar a on es duplica, té efecte aals gràfics?)
+#   distinct(seas_treat, asv_num) |>
+#   group_by(seas_treat) |>
+#   dplyr::summarize(num_growing_asv = n()) |>
+#   #mutate(num_responding_asv = as.numeric(num_responding_asv)) |>
+#   as_tibble()
 
-total_responsive_asvs |>
+##Responsive ASVs vs present ASVs at t0----
+total_asvs_t0 <- rem_fc_relabun@otu_table |>
+  as_tibble() |>
+  left_join(as_tibble(rem_fc_relabun@sam_data)) |>
+  dplyr::filter(time == 't0' &
+                season != 'Early_fall') |> 
+  left_join(as_tibble(rem_fc_filt@tax_table)) |>
+  dplyr::select(season, treatment, asv_num, replicate, .abundance)
+
+total_asvs_t0_present <- total_asvs_t0 |>
+  dplyr::mutate(rel_abund = as.numeric(.abundance)) |>
+  dplyr::select(-.abundance) |>
+  group_by(season, treatment, asv_num) |>
+  dplyr::summarize(mean_abund = mean(rel_abund)) |>
+  dplyr::filter(mean_abund > 0) |>
+  dplyr::summarize(num_present_asvs = n()) |>
+  dplyr::mutate(seas_treat = paste(treatment, season))
+  
+total_responsive_asvs_growing_insitu <- total_responsive_asvs |>
   left_join(total_growing_asvs) |>
-  mutate(relative_responsive_asvs = num_responsive_asv/num_growing_asv)
+  left_join(total_asvs_t0_present) |>
+  dplyr::mutate(relative_responsive_asvs = num_responsive_asv/num_growing_asv,
+                growing_asvs = num_growing_asv/num_present_asvs,
+                responsive_asvs_insitu = num_responsive_asv/num_present_asvs)
 
 ## plot relative responsive ASVs per treatment-season ----
+# total_responsive_asvs_plot_relative <- 
+#   total_responsive_asvs |>
+#   left_join(total_growing_asvs) |>
+#   mutate(relative_responsive_asvs = num_responsive_asv/num_growing_asv) |>
+#   separate('seas_treat', sep = ' ', into = c('Treatment', 'Season'), remove = F) |>
+#   as_tibble() |>
+#   mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
+#                                                 "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
+#                                                 "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
+#                                                 "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall"))) |>
+#   ggplot(aes(seas_treat, relative_responsive_asvs, fill = Season))+
+#   geom_col(alpha = 1)+
+#   geom_text(aes(label = (Treatment), y = (1.1)))+
+#   coord_polar()+
+#   labs(x = '', y = '')+
+#   scale_fill_manual(values = palette_seasons_4)+
+#   annotate('text', x = 0, y = c(0.2, 0.4, 0.6, 0.8, 1), label = c('0.2', '0.4', '0.6', '0.8', '1')) +
+#   scale_y_continuous(limits = c(0, 1.1))+
+#   theme_bw()+
+#   theme(legend.position = 'none',
+#         panel.border = element_blank(),
+#         axis.ticks.y = element_blank(),
+#         axis.text = element_blank(),
+#         panel.grid.major.x = element_blank(),
+#         text = element_text(size = 5),
+#         plot.margin = margin(0,2,0,0, unit = 'cm'))
+
+##plot % growing ASVs----
 total_responsive_asvs_plot_relative <- 
-  total_responsive_asvs |>
-  left_join(total_growing_asvs) |>
-  mutate(relative_responsive_asvs = num_responsive_asv/num_growing_asv) |>
+  total_responsive_asvs_growing_insitu  |>
   separate('seas_treat', sep = ' ', into = c('Treatment', 'Season'), remove = F) |>
   as_tibble() |>
   mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
                                                 "CD Spring", "CL Spring" , "PD Spring", "PL Spring", "DL Spring", "VL Spring", 
                                                 "CD Summer", "CL Summer", "PD Summer", "PL Summer" , "DL Summer"  , "VL Summer",
                                                 "CD Fall", "CL Fall", "PD Fall", "PL Fall", "DL Fall", "VL Fall"))) |>
-  ggplot(aes(seas_treat, relative_responsive_asvs, fill = Season))+
+  ggplot(aes(seas_treat, responsive_asvs_insitu, fill = Season))+
   geom_col(alpha = 0.9)+
-  geom_text(aes(label = (Treatment), y = (1.1)))+
+  geom_text(aes(label = (Treatment), y = (0.6)))+
   coord_polar()+
   labs(x = '', y = '')+
   scale_fill_manual(values = palette_seasons_4)+
   annotate('text', x = 0, y = c(0.2, 0.4, 0.6, 0.8, 1), label = c('0.2', '0.4', '0.6', '0.8', '1')) +
-  scale_y_continuous(limits = c(0, 1.1))+
+  scale_y_continuous(limits = c(0, 0.6))+
   theme_bw()+
   theme(legend.position = 'none',
         panel.border = element_blank(),
@@ -3083,11 +2418,11 @@ total_responsive_asvs_plot_relative <-
         text = element_text(size = 5),
         plot.margin = margin(0,2,0,0, unit = 'cm'))
 
-# ggsave(filename = 'total_responsive_asvs_plot_relative.pdf', plot = total_responsive_asvs_plot_relative, 
-#        path = 'results/figures/corrected_asv_num/',
+# ggsave(filename = 'total_responsive_asvs_plot_relative_insitu.pdf', plot = total_responsive_asvs_plot_relative,
+#        path = 'results/figures/corrected_asv_num/manuscript_figures/',
 #        width = 88, height = 88, units = 'mm')
 
-total_responsive_asvs <-  total_responsive_asvs |>
+total_responsive_asvs_growing <-  total_responsive_asvs_growing |>
   separate('seas_treat', sep = ' ', into = c('Treatment', 'Season'), remove = F) |>
   as_tibble() |>
   mutate(seas_treat = fct_relevel(seas_treat, c("CD Winter", "CL Winter",  "PD Winter" , "PL Winter", "DL Winter", "VL Winter",
@@ -3123,6 +2458,31 @@ total_responsive_asvs_plot_absolut <-
 #        path = 'results/figures/corrected_asv_num/',
 #        width = 88, height = 88, units = 'mm')
 
+## plot absolute number of growing ASVs ----
+# total_responsive_asvs_plot_absolut <- 
+#   total_responsive_asvs_growing |>
+#   ggplot(aes(seas_treat, num_responsive_asv, fill = Season))+
+#   geom_col()+
+#   geom_text(aes(label = (Treatment), y = (300)))+
+#   coord_polar()+
+#   labs(x = '', y = '')+
+#   scale_fill_manual(values = palette_seasons_4)+
+#   annotate('text', x = 0, y = c(100, 200, 300), label = c('100', '200', '300')) +
+#   scale_y_continuous(limits = c(0, 300))+
+#   theme_bw()+
+#   theme(legend.position = 'none',
+#         panel.border = element_blank(),
+#         axis.ticks.y = element_blank(),
+#         axis.text = element_blank(),
+#         axis.text.x = element_blank(),
+#         panel.grid.major.x = element_blank(),
+#         text = element_text(size = 5),
+#         plot.margin = margin(0,0,0,0))
+
+# ggsave(filename = 'total_responsive_asvs_plot_absolut.pdf', plot = total_responsive_asvs_plot_absolut, 
+#        path = 'results/figures/corrected_asv_num/',
+#        width = 88, height = 88, units = 'mm')
+
 
 ## Number of exclusive ASVs growing GR>1(day-1) per sample----------------
 data_for_exclusive_asvs <- reg_all_slopes_chosen_silva_tax |>
@@ -3131,6 +2491,27 @@ data_for_exclusive_asvs <- reg_all_slopes_chosen_silva_tax |>
   mutate(seas_treat = paste(treatment, season)) |>
   group_by(seas_treat, asv_num) |> 
   distinct(seas_treat, asv_num) 
+
+tax <- reg_all_slopes_chosen_silva_tax |>
+  dplyr::select(asv_num, domain, phylum, class, order, family, genus) |>
+  distinct()
+
+data_for_exclusive_asvs_tax <- data_for_exclusive_asvs |>
+  left_join(tax, by = 'asv_num') |>
+  group_by(seas_treat, asv_num) |>
+  dplyr::mutate(num_responding_asv = n()) |>
+  separate(seas_treat, into = c('season', 'treatment'), sep = ' ', remove = F) |>
+  group_by(seas_treat,family, genus) |>
+  dplyr::summarize(n = n())
+
+
+data_for_exclusive_asvs_tax |>
+  #dplyr::summarize()
+  ggplot(aes(treatment, num_responding_asv, fill = class))+
+  geom_col()+
+  scale_fill_manual(values = palette_class_assigned)+
+  facet_grid(vars(season))+
+  theme_bw()
 
 total_responding_asvs_sample  <-  data_for_exclusive_asvs |>
   group_by(seas_treat) |>
@@ -3155,7 +2536,7 @@ exclusive_asvs_dataset %$%
   number_exclusive_asvs |>
   range()
 
-## Relative exclusive ASVs plot (Fig. 6C) ----
+## Relative exclusive ASVs plot (Fig. 6B) ----
 exclusive_asvs_relative <-  exclusive_asvs_dataset |>
   left_join(total_responding_asvs_sample, by = 'seas_treat') |>
   mutate(number_exclusive_asvs = as.numeric(number_exclusive_asvs)) |>
@@ -3375,7 +2756,7 @@ specific_range <- common_asv_sum %$%
   relative_connectivity |>
   range()
 
-##Plot connections > 30%  (relative connections, figure 6D) ----
+##Plot connections > 30%  (relative connections, figure 6C) ----
 common_asvs_1gr_relative <- ggraph(mygraph_rel, layout="linear", circular = TRUE) + 
   geom_edge_arc(aes(width = as.numeric(connections$relative_connectivity), 
                     color = as.numeric(connections$relative_connectivity)),
@@ -3505,11 +2886,6 @@ common_asvs_1gr_absolut <- ggraph(mygraph, layout="linear", circular = TRUE) +
 # ggsave(filename = 'common_asvs_all_1gr_absolut_30perc.pdf', plot = common_asvs_1gr_absolut, 
 #        path = 'results/figures/corrected_asv_num/',
 #        width = 188, height = 188, units = 'mm')
-
-
-
-
-
 
 # ----- 9. RELATIONSHIP BETWEEN ABUNDANCE AND GROWTH ----------------
 # PREVIOUSLY WE PERFORMED A CLUSTERING AT 100% BETWEEN ASV SEQUENCES FROM IN SITU DATA & GROWTH RATES FROM THE EXPERIMENTS ---------
@@ -3802,7 +3178,7 @@ rel_abund_gr_relation_rank <-
 #        width = 220, height = 188, units = 'mm')
 
 
-## plot relative abundance vs. growth rate (figure 7) all_together figure-------
+## plot relative abundance vs. growth rate (figure 6) all_together figure-------
 seqs_gr_rel_abund <- seqs_gr_rel_abund |>
   ungroup() |>
   mutate(rel_abund_ed = as.numeric(rel_abund))  |>
@@ -4016,8 +3392,6 @@ ggsave('real_bloomers_family.pdf', real_bloomers_family, path = 'results/figures
         width = 150,
        height = 150,
        units = 'mm')
-
-
 
 # ----- 10. CORRELATIONS WITH CARD-FISH BASED GROWTH RATES ----------------
 ## abundance-based gr dataset
