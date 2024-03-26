@@ -12,3 +12,7 @@ Marine prokaryotes play crucial roles in ocean biogeochemical cycles, being thei
 # Aknowledgements
 We thank Carolina Marín-Vindas, Cèlia Marrasé, Montse Sala, Vanessa Balagué and all the participants in the experiments. We also thank Mireia Burnat and Helena Catena who participated in DNA extraction and David Kirchman who commented on an earlier draft. This research was supported by grants REMEI (CTM2015-70340-R) and MIAU (RTI2018-101025-B-100) funded by the Spanish Ministry of Science and Innovation. We acknowledge the ‘Severo Ochoa Centre of Excellence’ accreditation (CEX2019-000928-S). Adrià Auladell and Ona Deulofeu-Capo were supported by Spanish FPI grants.
 
+# Experimental design 
+
+![](remei_experiments.pdf)
+
