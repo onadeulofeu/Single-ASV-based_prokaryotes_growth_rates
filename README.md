@@ -14,5 +14,5 @@ We thank Carolina Marín-Vindas, Cèlia Marrasé, Montse Sala, Vanessa Balagué 
 
 # Experimental design 
 
-![Experimental Setup](experimental_setup/remei_experiments.pdf)
+![Scheme of the experimental design](experimental_setup/remei_experiments.pdf)
 
